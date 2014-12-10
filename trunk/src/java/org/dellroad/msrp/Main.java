@@ -66,7 +66,7 @@ public class Main extends MainClass {
     private CursorBuffer cursorBuffer;
     private boolean verbose;
 
-    private MsrpUri currentSession;
+    private volatile MsrpUri currentSession;
 
     @Override
     public int run(String[] args) throws Exception {
@@ -123,7 +123,7 @@ public class Main extends MainClass {
         this.msrp.start();
 
         // Main command loop
-        this.writer.println("Welcome to MSRP. Type `help' for help.");
+        this.writer.println("Welcome to msrp4j. Type `help' for help.");
         this.writer.println("Listening on address " + this.msrp.getListenAddress());
         final StringBuilder lineBuffer = new StringBuilder();
         try {
@@ -132,7 +132,7 @@ public class Main extends MainClass {
                 // Read command line
                 String line;
                 try {
-                    line = this.console.readLine(lineBuffer.length() == 0 ? "MSRP> " : "   -> ");
+                    line = this.console.readLine(lineBuffer.length() == 0 ? "msrp4j> " : "     -> ");
                 } catch (UserInterruptException e) {
                     this.writer.print("^C");
                     line = null;
@@ -353,6 +353,8 @@ public class Main extends MainClass {
     }
 
     private Session findCurrentSession() {
+        if (this.currentSession == null)
+            throw new RuntimeException("no current session; use `select' command to select one");
         final Session session = this.msrp.getSessions().get(this.currentSession);
         if (session == null)
             throw new RuntimeException("no session found corresponding to local URI " + this.currentSession);
@@ -368,8 +370,10 @@ public class Main extends MainClass {
     private void list() {
         final SortedMap<MsrpUri, Session> sessionMap = this.msrp.getSessions();
         this.writer.println("* " + sessionMap.size() + " active sessions:");
-        for (Session session : sessionMap.values())
-            this.writer.println("* localURI=" + session.getLocalUri() + " remoteURI=" + session.getRemoteUri());
+        for (Session session : sessionMap.values()) {
+            final MsrpUri localURI = session.getLocalUri();
+            this.writer.println((localURI.equals(this.currentSession) ? "* " : "  ") + localURI + " -> " + session.getRemoteUri());
+        }
     }
 
     private void success(String messageId, ByteRange byteRange) {
@@ -392,6 +396,8 @@ public class Main extends MainClass {
         public void sessionClosed(Session session, Exception cause) {
             Main.this.stashLine();
             Main.this.writer.println("* Session " + session.getLocalUri() + " closed: " + cause);
+            if (session.getLocalUri().equals(Main.this.currentSession))
+                Main.this.currentSession = null;
             Main.this.unstashLine();
         }
 

@@ -1,0 +1,143 @@
+<html>
+<head>
+<title>TestNG:  Unit Tests</title>
+<link href="../testng.css" rel="stylesheet" type="text/css" />
+<link href="../my-testng.css" rel="stylesheet" type="text/css" />
+
+<style type="text/css">
+.log { display: none;} 
+.stack-trace { display: none;} 
+</style>
+<script type="text/javascript">
+<!--
+function flip(e) {
+  current = e.style.display;
+  if (current == 'block') {
+    e.style.display = 'none';
+    return 0;
+  }
+  else {
+    e.style.display = 'block';
+    return 1;
+  }
+}
+
+function toggleBox(szDivId, elem, msg1, msg2)
+{
+  var res = -1;  if (document.getElementById) {
+    res = flip(document.getElementById(szDivId));
+  }
+  else if (document.all) {
+    // this is the way old msie versions work
+    res = flip(document.all[szDivId]);
+  }
+  if(elem) {
+    if(res == 0) elem.innerHTML = msg1; else elem.innerHTML = msg2;
+  }
+
+}
+
+function toggleAllBoxes() {
+  if (document.getElementsByTagName) {
+    d = document.getElementsByTagName('div');
+    for (i = 0; i < d.length; i++) {
+      if (d[i].className == 'log') {
+        flip(d[i]);
+      }
+    }
+  }
+}
+
+// -->
+</script>
+
+</head>
+<body>
+<h2 align='center'>Unit Tests</h2><table border='1' align="center">
+<tr>
+<td>Tests passed/Failed/Skipped:</td><td>12/0/0</td>
+</tr><tr>
+<td>Started on:</td><td>Wed Dec 10 16:19:00 CST 2014</td>
+</tr>
+<tr><td>Total time:</td><td>0 seconds (67 ms)</td>
+</tr><tr>
+<td>Included groups:</td><td></td>
+</tr><tr>
+<td>Excluded groups:</td><td></td>
+</tr>
+</table><p/>
+<small><i>(Hover the method name to see the test class name)</i></small><p/>
+<table width='100%' border='1' class='invocation-passed'>
+<tr><td colspan='4' align='center'><b>PASSED TESTS</b></td></tr>
+<tr><td><b>Test method</b></td>
+<td width="30%"><b>Exception</b></td>
+<td width="10%"><b>Time (seconds)</b></td>
+<td><b>Instance</b></td>
+</tr>
+<tr>
+<td title='org.dellroad.msrp.msg.MsrpMessageParseTest.testInvalid()'><b>testInvalid</b><br>Test class: org.dellroad.msrp.msg.MsrpMessageParseTest<br>Parameters: message-invalid-1.in, invalid start line.*</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.MsrpMessageParseTest@1edd6d83</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.MsrpMessageParseTest.testInvalid()'><b>testInvalid</b><br>Test class: org.dellroad.msrp.msg.MsrpMessageParseTest<br>Parameters: message-invalid-2.in, MIME headers are not allowed when message has no body</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.MsrpMessageParseTest@1edd6d83</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.MsrpMessageParseTest.testInvalid()'><b>testInvalid</b><br>Test class: org.dellroad.msrp.msg.MsrpMessageParseTest<br>Parameters: message-invalid-3.in, invalid end-line flag byte.*</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.MsrpMessageParseTest@1edd6d83</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.BoundaryInputStreamTest.testValid()'><b>testValid</b><br>Test class: org.dellroad.msrp.msg.BoundaryInputStreamTest<br>Parameters: boundary-match.in, abcd1234, 472, $, 
+here's some junk after the boundary
+</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.BoundaryInputStreamTest@3dbf0f5b</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.BoundaryInputStreamTest.testValid()'><b>testValid</b><br>Test class: org.dellroad.msrp.msg.BoundaryInputStreamTest<br>Parameters: boundary-match.in, abcd123, -1, ?, null</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.BoundaryInputStreamTest@3dbf0f5b</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.BoundaryInputStreamTest.testValid()'><b>testValid</b><br>Test class: org.dellroad.msrp.msg.BoundaryInputStreamTest<br>Parameters: boundary-match.in, abcd12345, -1, ?, null</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.BoundaryInputStreamTest@3dbf0f5b</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.BoundaryInputStreamTest.testValid()'><b>testValid</b><br>Test class: org.dellroad.msrp.msg.BoundaryInputStreamTest<br>Parameters: boundary-match.in, bcd1234, -1, ?, null</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.BoundaryInputStreamTest@3dbf0f5b</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.BoundaryInputStreamTest.testValid()'><b>testValid</b><br>Test class: org.dellroad.msrp.msg.BoundaryInputStreamTest<br>Parameters: boundary-aborted.in, aaabaaaa, 48, #, after stuff
+</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.BoundaryInputStreamTest@3dbf0f5b</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.BoundaryInputStreamTest.testValid()'><b>testValid</b><br>Test class: org.dellroad.msrp.msg.BoundaryInputStreamTest<br>Parameters: boundary-aborted.in, aaaabaaa, -1, ?, null</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.BoundaryInputStreamTest@3dbf0f5b</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.BoundaryInputStreamTest.testValid()'><b>testValid</b><br>Test class: org.dellroad.msrp.msg.BoundaryInputStreamTest<br>Parameters: boundary-incomplete.in, aaabaaaa, 48, +, after stuff
+</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.BoundaryInputStreamTest@3dbf0f5b</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.BoundaryInputStreamTest.testValid()'><b>testValid</b><br>Test class: org.dellroad.msrp.msg.BoundaryInputStreamTest<br>Parameters: boundary-incomplete.in, aaaabaaa, -1, ?, null</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.BoundaryInputStreamTest@3dbf0f5b</td></tr>
+<tr>
+<td title='org.dellroad.msrp.msg.MsrpMessageParseTest.testValid()'><b>testValid</b><br>Test class: org.dellroad.msrp.msg.MsrpMessageParseTest<br>Parameters: request-valid-1.in, class org.dellroad.msrp.msg.MsrpRequest</td>
+<td></td>
+<td>0</td>
+<td>org.dellroad.msrp.msg.MsrpMessageParseTest@1edd6d83</td></tr>
+</table><p>
+</body>
+</html>

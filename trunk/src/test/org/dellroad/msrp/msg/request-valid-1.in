@@ -1,0 +1,21 @@
+MSRP dsdfoe38sd SEND
+To-Path: msrp://alice.example.com:7777/iau39soe2843z;tcp
+From-Path: msrp://bob.example.com:8888/9di4eae923wzd;tcp
+Message-ID: 456so39s
+Byte-Range: 1-374/374
+Content-Type: application/xhtml+xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE html
+   PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "_http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd_">
+ <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+   <head>
+     <title>FY2005 Results</title>
+ </head>
+   <body>
+    <p>See the results at <a
+ href="http://example.org/">example.org</a>.</p>
+   </body>
+ </html>
+-------dsdfoe38sd$

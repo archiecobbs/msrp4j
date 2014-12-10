@@ -1,0 +1,33 @@
+blah blah blah
+
+blah blah blah
+Some almost but not quite boundary strings...
+
+-
+--
+---
+----
+-----
+------
+-------
+-------a
+-------ab
+-------abc
+-------abcd
+-------abcd1
+-------abcd12
+-------abcd123
+-------abcd1234
+-------abcd1234oops
+------abcd1234$
+--------abcd1234$
+------abcd1234@
+------abcd1234!
+------abcd1234$foobar
+foobar-------abcd1234$
+------abcd1234$------abcd1234$------abcd1234$------abcd1234$x
+
+OK, here's the real boundary string:
+-------abcd1234$
+
+here's some junk after the boundary

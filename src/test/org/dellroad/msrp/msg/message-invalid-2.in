@@ -1,0 +1,7 @@
+MSRP dsdfoe38sd SEND
+To-Path: msrp://alice.example.com:7777/iau39soe2843z;tcp
+From-Path: msrp://bob.example.com:8888/9di4eae923wzd;tcp
+Message-ID: 456so39s
+X-Test-Error: MIME headers but not body
+Content-Type: text/plain
+-------dsdfoe38sd$

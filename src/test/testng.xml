@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- $Id$ -->
+<suite name="Unit Test Suite" verbose="2">
+
+    <parameter name="deleteTempDirs" value="true"/>
+    <parameter name="randomSeed" value=""/>
+
+    <test name="Unit Tests">
+        <packages>
+            <package name="org.dellroad.msrp.msg"/>
+        </packages>
+    </test>
+</suite>
+

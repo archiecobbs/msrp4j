@@ -411,15 +411,15 @@ public class Session {
     // Handle transaction response
     private void handleResponse(MsrpResponse response) {
 
-        // Success is easy :-)
-        if (response.getCode() < 300)
-            return;
-
         // Find the corresponding transaction and output chunks
         final OutputTransaction transaction = this.outputTransactions.remove(response.getTransactionId());
         if (transaction == null)
             return;
         final OutputChunks chunks = transaction.getOutputChunks();
+
+        // Success is easy :-)
+        if (response.getCode() < 300)
+            return;
 
         // Notify failure listener, if any
         chunks.notifyFailure(this, this.callbackExecutor, response.toStatus());
@@ -526,8 +526,11 @@ public class Session {
         // Scrub transactions that have timed out waiting for transaction responses
         for (Iterator<OutputTransaction> i = this.outputTransactions.values().iterator(); i.hasNext(); ) {
             final OutputTransaction outputTransaction = i.next();
-            if (outputTransaction.getAge() >= MAX_TRANSACTION_AGE_MILLIS)
+            if (outputTransaction.getAge() >= MAX_TRANSACTION_AGE_MILLIS) {
+                outputTransaction.getOutputChunks().notifyFailure(this, this.callbackExecutor,
+                  new Status(MsrpConstants.RESPONSE_CODE_TIMEOUT, "No response rec'd for transaction"));
                 i.remove();
+            }
         }
     }
 

@@ -22,6 +22,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.concurrent.Executors;
@@ -396,8 +397,13 @@ public class Main extends MainClass {
         public void sessionClosed(Session session, Exception cause) {
             Main.this.stashLine();
             Main.this.writer.println("* Session " + session.getLocalUri() + " closed: " + cause);
-            if (session.getLocalUri().equals(Main.this.currentSession))
-                Main.this.currentSession = null;
+            if (session.getLocalUri().equals(Main.this.currentSession)) {
+                try {
+                    Main.this.currentSession = Main.this.msrp.getSessions().values().iterator().next().getLocalUri();
+                } catch (NoSuchElementException e) {
+                    Main.this.currentSession = null;
+                }
+            }
             Main.this.unstashLine();
         }
 

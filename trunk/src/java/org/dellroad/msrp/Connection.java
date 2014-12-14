@@ -105,10 +105,11 @@ class Connection {
      * Close this connection.
      *
      * @param cause error that occurred, if any, otherwise null
+     * @return true if this instance was closed, false if this instance was already closed
      */
-    public void close(Exception cause) {
+    public boolean close(Exception cause) {
         if (this.closed)
-            return;
+            return false;
         this.closed = true;
         if (this.log.isDebugEnabled())
             this.log.debug("closing " + this + ", cause: " + cause);
@@ -118,6 +119,7 @@ class Connection {
             // ignore
         }
         this.msrp.handleConnectionClosed(this, cause);
+        return true;
     }
 
     @Override

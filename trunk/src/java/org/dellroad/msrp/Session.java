@@ -96,11 +96,12 @@ public class Session {
      * </p>
      *
      * @param cause error that occurred, if any, otherwise null
+     * @return true if this instance was closed, false if this instance was already closed
      */
-    public void close(final Exception cause) {
+    public boolean close(final Exception cause) {
         synchronized (this.msrp) {
             if (this.closed)
-                return;
+                return false;
             if (this.log.isDebugEnabled())
                 this.log.debug("closing " + this);
             try {
@@ -133,6 +134,7 @@ public class Session {
                     }
                 }
             });
+            return true;
         }
     }
 
@@ -185,6 +187,25 @@ public class Session {
      */
     public String send(Iterable<Header> headers, ReportListener reportListener) {
         return this.doSend(null, -1, null, headers, reportListener);
+    }
+
+    /**
+     * Cancel an outgoing message previously sent.
+     *
+     * @param messageId message ID returned by {@code send()}
+     * @throws IllegalArgumentException if {@code messageId} is null
+     * @return true if message was canceled, false if message has already been completely sent
+     */
+    public boolean cancel(String messageId) {
+        if (messageId == null)
+            throw new IllegalArgumentException("null messageId");
+        synchronized (this.msrp) {
+            final OutputChunks chunks = this.outputChunks.get(messageId);
+            if (chunks == null)
+                return false;
+            chunks.close();
+            return chunks.isAborted();
+        }
     }
 
     /**

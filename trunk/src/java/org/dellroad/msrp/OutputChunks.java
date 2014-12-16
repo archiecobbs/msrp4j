@@ -36,7 +36,7 @@ public class OutputChunks implements Closeable, Iterator<MsrpRequest> {
     private final MsrpUri localURI;
     private final MsrpUri remoteURI;
     private final String messageId = MsrpMessage.randomId();
-    private final Iterable<Header> headers;
+    private final Iterable<? extends Header> headers;
     private final InputStream input;
     private final String contentType;
     private final long size;
@@ -51,7 +51,7 @@ public class OutputChunks implements Closeable, Iterator<MsrpRequest> {
     /**
      * Constructor for a message with no body.
      */
-    public OutputChunks(MsrpUri localURI, MsrpUri remoteURI, Iterable<Header> headers, ReportListener reportListener) {
+    public OutputChunks(MsrpUri localURI, MsrpUri remoteURI, Iterable<? extends Header> headers, ReportListener reportListener) {
         this(localURI, remoteURI, null, -1, null, headers, reportListener);
     }
 
@@ -70,7 +70,7 @@ public class OutputChunks implements Closeable, Iterator<MsrpRequest> {
      * @throws IllegalArgumentException if {@code input} is not null and {@code contentType} is null
      */
     public OutputChunks(MsrpUri localURI, MsrpUri remoteURI, InputStream input, long size,
-      String contentType, Iterable<Header> headers, ReportListener reportListener) {
+      String contentType, Iterable<? extends Header> headers, ReportListener reportListener) {
         if (localURI == null)
             throw new IllegalArgumentException("null localURI");
         if (remoteURI == null)

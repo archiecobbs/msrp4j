@@ -149,7 +149,7 @@ public class Session {
      * @throws IllegalArgumentException if {@code content} or {@code contentType} is null
      * @throws IllegalArgumentException if {@code headers} contains an invalid header name or value
      */
-    public String send(byte[] content, String contentType, Iterable<Header> headers, ReportListener reportListener) {
+    public String send(byte[] content, String contentType, Iterable<? extends Header> headers, ReportListener reportListener) {
         if (content == null)
             throw new IllegalArgumentException("null content");
         return this.doSend(new ByteArrayInputStream(content), content.length, contentType, headers, reportListener);
@@ -169,7 +169,8 @@ public class Session {
      * @throws IllegalArgumentException if {@code size} is less than -1
      * @throws IllegalArgumentException if {@code headers} contains an invalid header name or value
      */
-    public String send(InputStream input, int size, String contentType, Iterable<Header> headers, ReportListener reportListener) {
+    public String send(InputStream input, int size, String contentType,
+      Iterable<? extends Header> headers, ReportListener reportListener) {
         if (input == null)
             throw new IllegalArgumentException("null input");
         return this.doSend(input, size, contentType, headers, reportListener);
@@ -185,7 +186,7 @@ public class Session {
      * @throws IllegalArgumentException if {@code size} is less than -1 or {@code input} is null and size is not -1
      * @throws IllegalArgumentException if {@code headers} contains an invalid header name or value
      */
-    public String send(Iterable<Header> headers, ReportListener reportListener) {
+    public String send(Iterable<? extends Header> headers, ReportListener reportListener) {
         return this.doSend(null, -1, null, headers, reportListener);
     }
 
@@ -265,7 +266,8 @@ public class Session {
 
 // Internal API
 
-    String doSend(InputStream input, int size, String contentType, Iterable<Header> headers, ReportListener reportListener) {
+    String doSend(InputStream input, int size, String contentType,
+      Iterable<? extends Header> headers, ReportListener reportListener) {
         synchronized (this.msrp) {
 
             // Sanity check

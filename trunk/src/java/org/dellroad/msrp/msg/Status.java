@@ -50,7 +50,7 @@ public class Status {
      *
      * @param namespace status code namespace
      * @param code status code
-     * @param comment comment
+     * @param comment comment, or null
      */
     public Status(int namespace, int code, String comment) {
         if (namespace < 0 || namespace > 999)

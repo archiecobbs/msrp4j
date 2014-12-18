@@ -111,8 +111,10 @@ public class Session {
             }
             for (OutputChunks chunks : this.outputChunks.values()) {
                 chunks.close();
-                chunks.notifyFailure(this, this.callbackExecutor,
-                  new Status(MsrpConstants.RESPONSE_CODE_SESSION_DOES_NOT_EXIST, "Session closed"));
+                if (chunks.hasNext()) {
+                    chunks.notifyFailure(this, this.callbackExecutor,
+                      new Status(MsrpConstants.RESPONSE_CODE_SESSION_DOES_NOT_EXIST, "Session closed"));
+                }
             }
             this.inputChunks.clear();
             this.outputChunks.clear();

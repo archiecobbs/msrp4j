@@ -164,17 +164,16 @@ public class Msrp {
     public synchronized void start() throws IOException {
         if (this.serviceThread != null)
             return;
-        InetSocketAddress startListenAddress = this.listenAddress;
-        if (startListenAddress == null)
-            startListenAddress = new InetSocketAddress(MsrpConstants.DEFAULT_PORT);
+        if (this.listenAddress == null)
+            this.listenAddress = new InetSocketAddress(MsrpConstants.DEFAULT_PORT);
         if (this.log.isDebugEnabled())
-            this.log.debug("starting " + this + " listening on " + startListenAddress);
+            this.log.debug("starting " + this + " listening on " + this.listenAddress);
         boolean successful = false;
         try {
             this.selector = Selector.open();
             this.serverSocketChannel = ServerSocketChannel.open();
             this.serverSocketChannel.configureBlocking(false);
-            this.serverSocketChannel.bind(startListenAddress);
+            this.serverSocketChannel.bind(this.listenAddress);
             this.selectionKey = this.createSelectionKey(this.serverSocketChannel, new SelectorService() {
                 @Override
                 public void serviceIO(SelectionKey key) throws IOException {

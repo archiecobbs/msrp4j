@@ -7,6 +7,17 @@ This is the API documentation for version @VERSION@ of the <a href="http://msrp4
 Java library.
 </p>
 
+<b>msrp4j</b> is a Java library for the MSRP protocol defined by <a href="https://tools.ietf.org/html/rfc4975">RFC 4975</a>.
+MSRP is a TCP protocol for transmitting messages containing arbitrary content between peers. MSRP can be thought of as a
+TCP/IP version of SMS/MMS text messaging.
+
+<b>msrp4j</b> implements the actual MSRP protocol itself. The setup and/or negotiation of MSRP sessions must be handled
+by other means; this is typically done via SIP.
+
+<p>
+The central Java class is {@link org.dellroad.msrp.Msrp}; each instance represents an MSRP protocol stack.
+</p>
+
 <p>
 Visit the <b>msrp4j</b> homepage at <a href="http://msrp4j.googlecode.com/"><code>http://msrp4j.googlecode.com/</code></a>.
 </p>

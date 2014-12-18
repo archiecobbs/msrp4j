@@ -35,12 +35,12 @@ import org.slf4j.LoggerFactory;
  * <p>
  * Instances must be {@link #start}ed before being used. Once started, new MSRP {@link Session}s may be created
  * by invoking {@link #createSession createSession()} with the local and remote URI's, a {@link SessionListener}
- * for receiving notification of session events, and an {@link Executor} by which notifications will be delivered.
+ * for receiving notification of session events, and an {@link Executor} on which all callback notifications will
+ * be delivered.
  * </p>
  *
  * <p>
- * Invoking {@link #stop} shuts down all active sessions and stops an instance. A stopped instance may then be
- * restarted if desired.
+ * Invoking {@link #stop} shuts down all active sessions and stops the instance. Stopped instances may be restarted if desired.
  * </p>
  */
 public class Msrp {
@@ -172,6 +172,7 @@ public class Msrp {
         try {
             this.selector = Selector.open();
             this.serverSocketChannel = ServerSocketChannel.open();
+            this.configureServerSocketChannel(this.serverSocketChannel);
             this.serverSocketChannel.configureBlocking(false);
             this.serverSocketChannel.bind(this.listenAddress);
             this.selectionKey = this.createSelectionKey(this.serverSocketChannel, new SelectorService() {
@@ -331,6 +332,31 @@ public class Msrp {
         return new TreeMap<MsrpUri, Session>(this.sessionMap);
     }
 
+    /**
+     * Configure the {@link ServerSocketChannel} to be used by this instance. This method is invoked by {@link #start}.
+     *
+     * <p>
+     * The implementation in {@link Msrp} does nothing. Subclasses may override to configure socket options, etc.
+     * </p>
+     *
+     * @param serverSocketChannel channel to configure
+     */
+    protected void configureServerSocketChannel(ServerSocketChannel serverSocketChannel) {
+    }
+
+    /**
+     * Configure a {@link SocketChannel} to be used by this instance with the given {@link Endpoint}.
+     *
+     * <p>
+     * The implementation in {@link Msrp} does nothing. Subclasses may override to configure socket options, etc.
+     * </p>
+     *
+     * @param socketChannel channel to configure
+     * @param endpoint the remote endpoint with which the socket will be used to communicate
+     */
+    protected void configureSocketChannel(SocketChannel socketChannel, Endpoint endpoint) {
+    }
+
     @Override
     public String toString() {
         return "Msrp[port=" + this.listenAddress.getPort() + "]";
@@ -341,6 +367,7 @@ public class Msrp {
     // Create connection. Note: this can block doing DNS lookups XXX
     Connection createConnection(Endpoint endpoint) throws IOException {
         final SocketChannel socketChannel = SocketChannel.open();
+        this.configureSocketChannel(socketChannel, endpoint);
         socketChannel.configureBlocking(false);
         if (this.log.isDebugEnabled())
             this.log.debug(this + " looking up DNS name `" + endpoint.getHost() + "'");

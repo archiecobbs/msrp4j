@@ -1,5 +1,6 @@
 Version Next
 
+    - Fix NPE bug when listen port not explicitly configured
     - Ensure failure notification issued if no response to a transaction
       is received within 30 seconds (RFC 4975 Section 3.1.1)
     - Minor CLI tweaks

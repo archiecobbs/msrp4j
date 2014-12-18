@@ -27,6 +27,8 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.dellroad.msrp.msg.ByteRange;
 import org.dellroad.msrp.msg.Header;
@@ -191,7 +193,7 @@ public class Main extends MainClass {
                         this.writer.println("* New current session is " + this.currentSession);
                         break;
                     case "text":
-                        this.send(new ByteArrayInputStream(ctx.getInput().getBytes(UTF8)), "text/plain");
+                        this.send(new ByteArrayInputStream(ctx.getInput().getBytes(UTF8)), "text/plain; charset=utf-8");
                         break;
                     case "send":
                     {
@@ -429,10 +431,22 @@ public class Main extends MainClass {
                 }
                 Main.this.writer.println("  Actual Length: " + content.length + " bytes");
                 Main.this.writer.println("  Content SHA1: " + ByteArrayEncoder.encode(sha1.digest(content)));
-                if (contentType.equals("text/plain")) {
-                    Main.this.writer.println();
-                    Main.this.writer.println(new String(content, UTF8));
-                    Main.this.writer.println();
+                if (contentType.startsWith("text/plain")) {
+                    String name = "utf-8";
+                    final Matcher matcher = Pattern.compile(".*charset=([^; ]+).*").matcher(contentType);
+                    if (matcher.matches())
+                        name = matcher.group(1);
+                    Charset charset = null;
+                    try {
+                        charset = Charset.forName(name);
+                    } catch (IllegalArgumentException e) {
+                        // ignore
+                    }
+                    if (charset != null) {
+                        Main.this.writer.println();
+                        Main.this.writer.println(new String(content, charset));
+                        Main.this.writer.println();
+                    }
                 }
             }
             Main.this.unstashLine();

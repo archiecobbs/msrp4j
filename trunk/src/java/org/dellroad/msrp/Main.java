@@ -70,6 +70,7 @@ public class Main extends MainClass {
     private boolean verbose;
 
     private volatile MsrpUri currentSession;
+    private volatile String lastReceivedMessageId;
 
     @Override
     public int run(String[] args) throws Exception {
@@ -169,16 +170,14 @@ public class Main extends MainClass {
                     continue;
 
                 // Get command and handle
-                final String command = ctx.matchPrefix("[^\\s]+").group();
-                ctx.skipWhitespace();
+                final String command = ctx.matchPrefix("([^\\s]+)\\s*").group(1);
                 try {
                     switch (command) {
                     case "connect":
                     case "accept":
                     {
-                        final MsrpUri localURI = new MsrpUri(ctx.matchPrefix("[^\\s]+").group());
-                        ctx.skipWhitespace();
-                        final MsrpUri remoteURI = new MsrpUri(ctx.matchPrefix("[^\\s]+").group());
+                        final MsrpUri localURI = new MsrpUri(ctx.matchPrefix("([^\\s]+)\\s*").group(1));
+                        final MsrpUri remoteURI = new MsrpUri(ctx.matchPrefix("([^\\s]+)\\s*").group(1));
                         this.open(localURI, remoteURI, command.equals("connect"));
                         break;
                     }
@@ -189,7 +188,7 @@ public class Main extends MainClass {
                         this.list();
                         break;
                     case "select":
-                        this.currentSession = new MsrpUri(ctx.matchPrefix("[^\\s]+").group());
+                        this.currentSession = new MsrpUri(ctx.matchPrefix("([^\\s]+)\\s*").group(1));
                         this.writer.println("* New current session is " + this.currentSession);
                         break;
                     case "text":
@@ -201,26 +200,38 @@ public class Main extends MainClass {
                             this.send(null, null);
                             break;
                         }
-                        final File file = new File(ctx.matchPrefix("[^\\s]+").group());
-                        ctx.skipWhitespace();
+                        final File file = new File(ctx.matchPrefix("([^\\s]+)\\s*").group(1));
                         final String contentType = ctx.matchPrefix("[^\\s]+").group();
                         this.send(new FileInputStream(file), contentType);
                         break;
                     }
                     case "success":
                     {
-                        final String messageId = ctx.matchPrefix("[^\\s]+").group();
-                        ctx.skipWhitespace();
-                        final ByteRange byteRange = ctx.getInput().length() != 0 ?
-                          ByteRange.fromString(ctx.getInput()) : ByteRange.ALL;
+                        String messageId = this.lastReceivedMessageId;
+                        if (ctx.getInput().length() > 0)
+                            messageId = ctx.matchPrefix("([^\\s]+)\\s*").group(1);
+                        if (messageId == null)
+                            throw new Exception("no message rec'd yet");
+                        ByteRange byteRange = ByteRange.ALL;
+                        if (ctx.getInput().length() > 0)
+                            byteRange = ByteRange.fromString(ctx.getInput());
                         this.success(messageId, byteRange);
                         break;
                     }
                     case "failure":
                     {
-                        final String messageId = ctx.matchPrefix("[^\\s]+").group();
-                        ctx.skipWhitespace();
-                        this.failure(messageId, Status.fromString(ctx.getInput()));
+                        String messageId = this.lastReceivedMessageId;
+                        if (ctx.getInput().length() > 0)
+                            messageId = ctx.matchPrefix("([^\\s]+)\\s*").group(1);
+                        if (messageId == null)
+                            throw new Exception("no message rec'd yet");
+                        int code = 400;
+                        if (ctx.getInput().length() > 0)
+                            code = Integer.parseInt(ctx.matchPrefix("([^\\s]+)\\s*").group(1));
+                        String comment = "Unspecified error";
+                        if (ctx.getInput().length() > 0)
+                            comment = ctx.matchPrefix("([^\\s]+)\\s*").group(1);
+                        this.failure(messageId, new Status(code, comment));
                         break;
                     }
                     case "quit":
@@ -245,9 +256,9 @@ public class Main extends MainClass {
                         this.writer.println("      Send a message with no content");
                         this.writer.println("  send name content-type");
                         this.writer.println("      Send arbitrary file");
-                        this.writer.println("  success messageId [byte-range]");
+                        this.writer.println("  success [ messageId [ byte-range ] ]");
                         this.writer.println("      Send success report");
-                        this.writer.println("  failure messageId nscode code [comment]");
+                        this.writer.println("  failure [ messageId [ code [ comment ... ] ] ]");
                         this.writer.println("      Send failure report");
                         this.writer.println("  quit");
                         this.writer.println("      Close all sessions and quit");
@@ -450,6 +461,7 @@ public class Main extends MainClass {
                 }
             }
             Main.this.unstashLine();
+            Main.this.lastReceivedMessageId = messageId;
         }
     }
 

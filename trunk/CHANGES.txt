@@ -1,4 +1,4 @@
-Version Next
+Version 1.0.18 Releaed January 15, 2014
 
     - Fix NPE bug when listen port not explicitly configured
     - Ensure failure notification issued if no response to a transaction

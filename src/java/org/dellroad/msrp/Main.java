@@ -1,8 +1,6 @@
 
 /*
  * Copyright (C) 2014 Archie L. Cobbs. All rights reserved.
- *
- * $Id$
  */
 
 package org.dellroad.msrp;
@@ -49,7 +47,7 @@ import jline.console.history.FileHistory;
  *
  * <p>
  * This class depends on the <a href="https://github.com/jline/jline2">JLine</a> and
- * <a href="http://dellroad-stuff.googlecode.com/">dellroad-stuff</a> Java libraries.
+ * <a href="https://github.com/archiecobbs/dellroad-stuff">dellroad-stuff</a> Java libraries.
  * </p>
  */
 public class Main extends MainClass {

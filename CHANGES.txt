@@ -9,4 +9,3 @@ Version 1.0.3 Released December 10, 2014
 
     - Initial release
 
-$Id$

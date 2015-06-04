@@ -9,603 +9,601 @@
 <pre><span class="sourceLineNo">001</span><a name="line.1"></a>
 <span class="sourceLineNo">002</span>/*<a name="line.2"></a>
 <span class="sourceLineNo">003</span> * Copyright (C) 2014 Archie L. Cobbs. All rights reserved.<a name="line.3"></a>
-<span class="sourceLineNo">004</span> *<a name="line.4"></a>
-<span class="sourceLineNo">005</span> * $Id$<a name="line.5"></a>
-<span class="sourceLineNo">006</span> */<a name="line.6"></a>
+<span class="sourceLineNo">004</span> */<a name="line.4"></a>
+<span class="sourceLineNo">005</span><a name="line.5"></a>
+<span class="sourceLineNo">006</span>package org.dellroad.msrp;<a name="line.6"></a>
 <span class="sourceLineNo">007</span><a name="line.7"></a>
-<span class="sourceLineNo">008</span>package org.dellroad.msrp;<a name="line.8"></a>
-<span class="sourceLineNo">009</span><a name="line.9"></a>
-<span class="sourceLineNo">010</span>import java.io.ByteArrayInputStream;<a name="line.10"></a>
-<span class="sourceLineNo">011</span>import java.io.IOException;<a name="line.11"></a>
-<span class="sourceLineNo">012</span>import java.io.InputStream;<a name="line.12"></a>
-<span class="sourceLineNo">013</span>import java.util.ArrayDeque;<a name="line.13"></a>
-<span class="sourceLineNo">014</span>import java.util.Iterator;<a name="line.14"></a>
-<span class="sourceLineNo">015</span>import java.util.List;<a name="line.15"></a>
-<span class="sourceLineNo">016</span>import java.util.TreeMap;<a name="line.16"></a>
-<span class="sourceLineNo">017</span>import java.util.TreeSet;<a name="line.17"></a>
-<span class="sourceLineNo">018</span>import java.util.concurrent.Executor;<a name="line.18"></a>
-<span class="sourceLineNo">019</span><a name="line.19"></a>
-<span class="sourceLineNo">020</span>import org.dellroad.msrp.msg.ByteRange;<a name="line.20"></a>
-<span class="sourceLineNo">021</span>import org.dellroad.msrp.msg.FailureReport;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import org.dellroad.msrp.msg.Header;<a name="line.22"></a>
-<span class="sourceLineNo">023</span>import org.dellroad.msrp.msg.MsrpHeaders;<a name="line.23"></a>
-<span class="sourceLineNo">024</span>import org.dellroad.msrp.msg.MsrpInputParser;<a name="line.24"></a>
-<span class="sourceLineNo">025</span>import org.dellroad.msrp.msg.MsrpMessage;<a name="line.25"></a>
-<span class="sourceLineNo">026</span>import org.dellroad.msrp.msg.MsrpRequest;<a name="line.26"></a>
-<span class="sourceLineNo">027</span>import org.dellroad.msrp.msg.MsrpResponse;<a name="line.27"></a>
-<span class="sourceLineNo">028</span>import org.dellroad.msrp.msg.ProtocolException;<a name="line.28"></a>
-<span class="sourceLineNo">029</span>import org.dellroad.msrp.msg.Status;<a name="line.29"></a>
-<span class="sourceLineNo">030</span>import org.slf4j.Logger;<a name="line.30"></a>
-<span class="sourceLineNo">031</span>import org.slf4j.LoggerFactory;<a name="line.31"></a>
-<span class="sourceLineNo">032</span><a name="line.32"></a>
-<span class="sourceLineNo">033</span>/**<a name="line.33"></a>
-<span class="sourceLineNo">034</span> * Represents one MSRP session.<a name="line.34"></a>
-<span class="sourceLineNo">035</span> */<a name="line.35"></a>
-<span class="sourceLineNo">036</span>public class Session {<a name="line.36"></a>
-<span class="sourceLineNo">037</span><a name="line.37"></a>
-<span class="sourceLineNo">038</span>    private static final int MAX_CONTENT_LENGTH = MsrpInputParser.DEFAULT_MAX_CONTENT_LENGTH;<a name="line.38"></a>
-<span class="sourceLineNo">039</span>    private static final long MAX_TRANSACTION_AGE_MILLIS = 30000L;                              // 30 seconds<a name="line.39"></a>
-<span class="sourceLineNo">040</span>    private static final long MAX_MESSAGE_IDLE_TIME_MILLIS = 90000L;                            // 90 seconds<a name="line.40"></a>
-<span class="sourceLineNo">041</span><a name="line.41"></a>
-<span class="sourceLineNo">042</span>    private final Logger log = LoggerFactory.getLogger(this.getClass());<a name="line.42"></a>
-<span class="sourceLineNo">043</span>    private final Msrp msrp;<a name="line.43"></a>
-<span class="sourceLineNo">044</span>    private final MsrpUri localURI;<a name="line.44"></a>
-<span class="sourceLineNo">045</span>    private final MsrpUri remoteURI;<a name="line.45"></a>
-<span class="sourceLineNo">046</span>    private final Endpoint activeEndpoint;<a name="line.46"></a>
-<span class="sourceLineNo">047</span>    private final SessionListener listener;<a name="line.47"></a>
-<span class="sourceLineNo">048</span>    private final Executor callbackExecutor;<a name="line.48"></a>
-<span class="sourceLineNo">049</span>    private final long startTime = System.nanoTime();<a name="line.49"></a>
-<span class="sourceLineNo">050</span><a name="line.50"></a>
-<span class="sourceLineNo">051</span>    private final TreeMap&lt;String, InputChunks&gt; inputChunks = new TreeMap&lt;&gt;();                   // key is message ID<a name="line.51"></a>
-<span class="sourceLineNo">052</span>    private final TreeMap&lt;String, OutputChunks&gt; outputChunks = new TreeMap&lt;&gt;();                 // key is message ID<a name="line.52"></a>
-<span class="sourceLineNo">053</span>    private final TreeMap&lt;String, OutputTransaction&gt; outputTransactions = new TreeMap&lt;&gt;();      // key is transaction ID<a name="line.53"></a>
-<span class="sourceLineNo">054</span>    private final ArrayDeque&lt;MsrpMessage&gt; outputQueue = new ArrayDeque&lt;&gt;();<a name="line.54"></a>
-<span class="sourceLineNo">055</span><a name="line.55"></a>
-<span class="sourceLineNo">056</span>    private Connection connection;<a name="line.56"></a>
-<span class="sourceLineNo">057</span>    private boolean closed;<a name="line.57"></a>
-<span class="sourceLineNo">058</span><a name="line.58"></a>
-<span class="sourceLineNo">059</span>    Session(Msrp msrp, MsrpUri localURI, MsrpUri remoteURI, Endpoint activeEndpoint,<a name="line.59"></a>
-<span class="sourceLineNo">060</span>      SessionListener listener, Executor callbackExecutor) {<a name="line.60"></a>
-<span class="sourceLineNo">061</span>        this.msrp = msrp;<a name="line.61"></a>
-<span class="sourceLineNo">062</span>        this.localURI = localURI;<a name="line.62"></a>
-<span class="sourceLineNo">063</span>        this.remoteURI = remoteURI;<a name="line.63"></a>
-<span class="sourceLineNo">064</span>        this.activeEndpoint = activeEndpoint;<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        this.listener = listener;<a name="line.65"></a>
-<span class="sourceLineNo">066</span>        this.callbackExecutor = callbackExecutor;<a name="line.66"></a>
-<span class="sourceLineNo">067</span>    }<a name="line.67"></a>
-<span class="sourceLineNo">068</span><a name="line.68"></a>
-<span class="sourceLineNo">069</span>    /**<a name="line.69"></a>
-<span class="sourceLineNo">070</span>     * Get local URI.<a name="line.70"></a>
-<span class="sourceLineNo">071</span>     */<a name="line.71"></a>
-<span class="sourceLineNo">072</span>    public MsrpUri getLocalUri() {<a name="line.72"></a>
-<span class="sourceLineNo">073</span>        return this.localURI;<a name="line.73"></a>
-<span class="sourceLineNo">074</span>    }<a name="line.74"></a>
-<span class="sourceLineNo">075</span><a name="line.75"></a>
-<span class="sourceLineNo">076</span>    /**<a name="line.76"></a>
-<span class="sourceLineNo">077</span>     * Get remote URI.<a name="line.77"></a>
-<span class="sourceLineNo">078</span>     */<a name="line.78"></a>
-<span class="sourceLineNo">079</span>    public MsrpUri getRemoteUri() {<a name="line.79"></a>
-<span class="sourceLineNo">080</span>        return this.remoteURI;<a name="line.80"></a>
-<span class="sourceLineNo">081</span>    }<a name="line.81"></a>
-<span class="sourceLineNo">082</span><a name="line.82"></a>
-<span class="sourceLineNo">083</span>    @Override<a name="line.83"></a>
-<span class="sourceLineNo">084</span>    public String toString() {<a name="line.84"></a>
-<span class="sourceLineNo">085</span>        return "Session[localURI=" + this.localURI + ",remoteURI=" + this.remoteURI + "]";<a name="line.85"></a>
-<span class="sourceLineNo">086</span>    }<a name="line.86"></a>
+<span class="sourceLineNo">008</span>import java.io.ByteArrayInputStream;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import java.io.IOException;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import java.io.InputStream;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import java.util.ArrayDeque;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import java.util.Iterator;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import java.util.List;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import java.util.TreeMap;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import java.util.TreeSet;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import java.util.concurrent.Executor;<a name="line.16"></a>
+<span class="sourceLineNo">017</span><a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.dellroad.msrp.msg.ByteRange;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import org.dellroad.msrp.msg.FailureReport;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import org.dellroad.msrp.msg.Header;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>import org.dellroad.msrp.msg.MsrpHeaders;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import org.dellroad.msrp.msg.MsrpInputParser;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import org.dellroad.msrp.msg.MsrpMessage;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import org.dellroad.msrp.msg.MsrpRequest;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import org.dellroad.msrp.msg.MsrpResponse;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import org.dellroad.msrp.msg.ProtocolException;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import org.dellroad.msrp.msg.Status;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.slf4j.Logger;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import org.slf4j.LoggerFactory;<a name="line.29"></a>
+<span class="sourceLineNo">030</span><a name="line.30"></a>
+<span class="sourceLineNo">031</span>/**<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * Represents one MSRP session.<a name="line.32"></a>
+<span class="sourceLineNo">033</span> */<a name="line.33"></a>
+<span class="sourceLineNo">034</span>public class Session {<a name="line.34"></a>
+<span class="sourceLineNo">035</span><a name="line.35"></a>
+<span class="sourceLineNo">036</span>    private static final int MAX_CONTENT_LENGTH = MsrpInputParser.DEFAULT_MAX_CONTENT_LENGTH;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>    private static final long MAX_TRANSACTION_AGE_MILLIS = 30000L;                              // 30 seconds<a name="line.37"></a>
+<span class="sourceLineNo">038</span>    private static final long MAX_MESSAGE_IDLE_TIME_MILLIS = 90000L;                            // 90 seconds<a name="line.38"></a>
+<span class="sourceLineNo">039</span><a name="line.39"></a>
+<span class="sourceLineNo">040</span>    private final Logger log = LoggerFactory.getLogger(this.getClass());<a name="line.40"></a>
+<span class="sourceLineNo">041</span>    private final Msrp msrp;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>    private final MsrpUri localURI;<a name="line.42"></a>
+<span class="sourceLineNo">043</span>    private final MsrpUri remoteURI;<a name="line.43"></a>
+<span class="sourceLineNo">044</span>    private final Endpoint activeEndpoint;<a name="line.44"></a>
+<span class="sourceLineNo">045</span>    private final SessionListener listener;<a name="line.45"></a>
+<span class="sourceLineNo">046</span>    private final Executor callbackExecutor;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>    private final long startTime = System.nanoTime();<a name="line.47"></a>
+<span class="sourceLineNo">048</span><a name="line.48"></a>
+<span class="sourceLineNo">049</span>    private final TreeMap&lt;String, InputChunks&gt; inputChunks = new TreeMap&lt;&gt;();                   // key is message ID<a name="line.49"></a>
+<span class="sourceLineNo">050</span>    private final TreeMap&lt;String, OutputChunks&gt; outputChunks = new TreeMap&lt;&gt;();                 // key is message ID<a name="line.50"></a>
+<span class="sourceLineNo">051</span>    private final TreeMap&lt;String, OutputTransaction&gt; outputTransactions = new TreeMap&lt;&gt;();      // key is transaction ID<a name="line.51"></a>
+<span class="sourceLineNo">052</span>    private final ArrayDeque&lt;MsrpMessage&gt; outputQueue = new ArrayDeque&lt;&gt;();<a name="line.52"></a>
+<span class="sourceLineNo">053</span><a name="line.53"></a>
+<span class="sourceLineNo">054</span>    private Connection connection;<a name="line.54"></a>
+<span class="sourceLineNo">055</span>    private boolean closed;<a name="line.55"></a>
+<span class="sourceLineNo">056</span><a name="line.56"></a>
+<span class="sourceLineNo">057</span>    Session(Msrp msrp, MsrpUri localURI, MsrpUri remoteURI, Endpoint activeEndpoint,<a name="line.57"></a>
+<span class="sourceLineNo">058</span>      SessionListener listener, Executor callbackExecutor) {<a name="line.58"></a>
+<span class="sourceLineNo">059</span>        this.msrp = msrp;<a name="line.59"></a>
+<span class="sourceLineNo">060</span>        this.localURI = localURI;<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        this.remoteURI = remoteURI;<a name="line.61"></a>
+<span class="sourceLineNo">062</span>        this.activeEndpoint = activeEndpoint;<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        this.listener = listener;<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        this.callbackExecutor = callbackExecutor;<a name="line.64"></a>
+<span class="sourceLineNo">065</span>    }<a name="line.65"></a>
+<span class="sourceLineNo">066</span><a name="line.66"></a>
+<span class="sourceLineNo">067</span>    /**<a name="line.67"></a>
+<span class="sourceLineNo">068</span>     * Get local URI.<a name="line.68"></a>
+<span class="sourceLineNo">069</span>     */<a name="line.69"></a>
+<span class="sourceLineNo">070</span>    public MsrpUri getLocalUri() {<a name="line.70"></a>
+<span class="sourceLineNo">071</span>        return this.localURI;<a name="line.71"></a>
+<span class="sourceLineNo">072</span>    }<a name="line.72"></a>
+<span class="sourceLineNo">073</span><a name="line.73"></a>
+<span class="sourceLineNo">074</span>    /**<a name="line.74"></a>
+<span class="sourceLineNo">075</span>     * Get remote URI.<a name="line.75"></a>
+<span class="sourceLineNo">076</span>     */<a name="line.76"></a>
+<span class="sourceLineNo">077</span>    public MsrpUri getRemoteUri() {<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        return this.remoteURI;<a name="line.78"></a>
+<span class="sourceLineNo">079</span>    }<a name="line.79"></a>
+<span class="sourceLineNo">080</span><a name="line.80"></a>
+<span class="sourceLineNo">081</span>    @Override<a name="line.81"></a>
+<span class="sourceLineNo">082</span>    public String toString() {<a name="line.82"></a>
+<span class="sourceLineNo">083</span>        return "Session[localURI=" + this.localURI + ",remoteURI=" + this.remoteURI + "]";<a name="line.83"></a>
+<span class="sourceLineNo">084</span>    }<a name="line.84"></a>
+<span class="sourceLineNo">085</span><a name="line.85"></a>
+<span class="sourceLineNo">086</span>// Public API<a name="line.86"></a>
 <span class="sourceLineNo">087</span><a name="line.87"></a>
-<span class="sourceLineNo">088</span>// Public API<a name="line.88"></a>
-<span class="sourceLineNo">089</span><a name="line.89"></a>
-<span class="sourceLineNo">090</span>    /**<a name="line.90"></a>
-<span class="sourceLineNo">091</span>     * Close this session.<a name="line.91"></a>
-<span class="sourceLineNo">092</span>     *<a name="line.92"></a>
-<span class="sourceLineNo">093</span>     * &lt;p&gt;<a name="line.93"></a>
-<span class="sourceLineNo">094</span>     * Any {@link FailureListener}s associated with queued messages will be notified.<a name="line.94"></a>
-<span class="sourceLineNo">095</span>     * This method is idempotent.<a name="line.95"></a>
-<span class="sourceLineNo">096</span>     * &lt;/p&gt;<a name="line.96"></a>
-<span class="sourceLineNo">097</span>     *<a name="line.97"></a>
-<span class="sourceLineNo">098</span>     * @param cause error that occurred, if any, otherwise null<a name="line.98"></a>
-<span class="sourceLineNo">099</span>     * @return true if this instance was closed, false if this instance was already closed<a name="line.99"></a>
-<span class="sourceLineNo">100</span>     */<a name="line.100"></a>
-<span class="sourceLineNo">101</span>    public boolean close(final Exception cause) {<a name="line.101"></a>
-<span class="sourceLineNo">102</span>        synchronized (this.msrp) {<a name="line.102"></a>
-<span class="sourceLineNo">103</span>            if (this.closed)<a name="line.103"></a>
-<span class="sourceLineNo">104</span>                return false;<a name="line.104"></a>
-<span class="sourceLineNo">105</span>            if (this.log.isDebugEnabled())<a name="line.105"></a>
-<span class="sourceLineNo">106</span>                this.log.debug("closing " + this);<a name="line.106"></a>
-<span class="sourceLineNo">107</span>            try {<a name="line.107"></a>
-<span class="sourceLineNo">108</span>                this.flushOutputQueue();            // to ensure any failure responses get sent<a name="line.108"></a>
-<span class="sourceLineNo">109</span>            } catch (IOException e) {<a name="line.109"></a>
-<span class="sourceLineNo">110</span>                // ignore<a name="line.110"></a>
-<span class="sourceLineNo">111</span>            }<a name="line.111"></a>
-<span class="sourceLineNo">112</span>            for (OutputChunks chunks : this.outputChunks.values()) {<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                chunks.close();<a name="line.113"></a>
-<span class="sourceLineNo">114</span>                if (chunks.hasNext()) {<a name="line.114"></a>
-<span class="sourceLineNo">115</span>                    chunks.notifyFailure(this, this.callbackExecutor,<a name="line.115"></a>
-<span class="sourceLineNo">116</span>                      new Status(MsrpConstants.RESPONSE_CODE_SESSION_DOES_NOT_EXIST, "Session closed"));<a name="line.116"></a>
-<span class="sourceLineNo">117</span>                }<a name="line.117"></a>
-<span class="sourceLineNo">118</span>            }<a name="line.118"></a>
-<span class="sourceLineNo">119</span>            this.inputChunks.clear();<a name="line.119"></a>
-<span class="sourceLineNo">120</span>            this.outputChunks.clear();<a name="line.120"></a>
-<span class="sourceLineNo">121</span>            this.outputTransactions.clear();<a name="line.121"></a>
-<span class="sourceLineNo">122</span>            this.outputQueue.clear();<a name="line.122"></a>
-<span class="sourceLineNo">123</span>            this.closed = true;<a name="line.123"></a>
-<span class="sourceLineNo">124</span>            this.msrp.handleSessionClosed(this);<a name="line.124"></a>
-<span class="sourceLineNo">125</span><a name="line.125"></a>
-<span class="sourceLineNo">126</span>            // Notify listener<a name="line.126"></a>
-<span class="sourceLineNo">127</span>            this.callbackExecutor.execute(new Runnable() {<a name="line.127"></a>
-<span class="sourceLineNo">128</span>                @Override<a name="line.128"></a>
-<span class="sourceLineNo">129</span>                public void run() {<a name="line.129"></a>
-<span class="sourceLineNo">130</span>                    try {<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                        Session.this.listener.sessionClosed(Session.this, cause);<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                    } catch (ThreadDeath t) {<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                        throw t;<a name="line.133"></a>
-<span class="sourceLineNo">134</span>                    } catch (Throwable t) {<a name="line.134"></a>
-<span class="sourceLineNo">135</span>                        Session.this.log.error("error in listener notification", t);<a name="line.135"></a>
-<span class="sourceLineNo">136</span>                    }<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                }<a name="line.137"></a>
-<span class="sourceLineNo">138</span>            });<a name="line.138"></a>
-<span class="sourceLineNo">139</span>            return true;<a name="line.139"></a>
-<span class="sourceLineNo">140</span>        }<a name="line.140"></a>
-<span class="sourceLineNo">141</span>    }<a name="line.141"></a>
-<span class="sourceLineNo">142</span><a name="line.142"></a>
-<span class="sourceLineNo">143</span>    /**<a name="line.143"></a>
-<span class="sourceLineNo">144</span>     * Enqueue an outgoing message specified as a {@code byte[]} array.<a name="line.144"></a>
-<span class="sourceLineNo">145</span>     *<a name="line.145"></a>
-<span class="sourceLineNo">146</span>     * @param content message content<a name="line.146"></a>
-<span class="sourceLineNo">147</span>     * @param contentType content type<a name="line.147"></a>
-<span class="sourceLineNo">148</span>     * @param headers other headers (MIME and/or extension), or null for none<a name="line.148"></a>
-<span class="sourceLineNo">149</span>     * @param reportListener success and/or failure listener, or null for none<a name="line.149"></a>
-<span class="sourceLineNo">150</span>     * @return unique message ID, or null if this instance is closed<a name="line.150"></a>
-<span class="sourceLineNo">151</span>     * @throws IllegalArgumentException if {@code content} or {@code contentType} is null<a name="line.151"></a>
-<span class="sourceLineNo">152</span>     * @throws IllegalArgumentException if {@code headers} contains an invalid header name or value<a name="line.152"></a>
-<span class="sourceLineNo">153</span>     */<a name="line.153"></a>
-<span class="sourceLineNo">154</span>    public String send(byte[] content, String contentType, Iterable&lt;? extends Header&gt; headers, ReportListener reportListener) {<a name="line.154"></a>
-<span class="sourceLineNo">155</span>        if (content == null)<a name="line.155"></a>
-<span class="sourceLineNo">156</span>            throw new IllegalArgumentException("null content");<a name="line.156"></a>
-<span class="sourceLineNo">157</span>        return this.doSend(new ByteArrayInputStream(content), content.length, contentType, headers, reportListener);<a name="line.157"></a>
-<span class="sourceLineNo">158</span>    }<a name="line.158"></a>
-<span class="sourceLineNo">159</span><a name="line.159"></a>
-<span class="sourceLineNo">160</span>    /**<a name="line.160"></a>
-<span class="sourceLineNo">161</span>     * Enqueue an outgoing message specified as an {@link InputStream}.<a name="line.161"></a>
-<span class="sourceLineNo">162</span>     * This method will handle closing the provided {@code input}.<a name="line.162"></a>
-<span class="sourceLineNo">163</span>     *<a name="line.163"></a>
-<span class="sourceLineNo">164</span>     * @param input message content input; will be eventually closed by this method<a name="line.164"></a>
-<span class="sourceLineNo">165</span>     * @param size size of input, or -1 if unknown; if positive and input is longer than this, it will be truncated<a name="line.165"></a>
-<span class="sourceLineNo">166</span>     * @param contentType content type<a name="line.166"></a>
-<span class="sourceLineNo">167</span>     * @param headers other headers (MIME and/or extension), or null for none<a name="line.167"></a>
-<span class="sourceLineNo">168</span>     * @param reportListener success and/or failure listener, or null for none<a name="line.168"></a>
-<span class="sourceLineNo">169</span>     * @return unique message ID, or null if this instance is closed<a name="line.169"></a>
-<span class="sourceLineNo">170</span>     * @throws IllegalArgumentException if {@code input} or {@code contentType} is null<a name="line.170"></a>
-<span class="sourceLineNo">171</span>     * @throws IllegalArgumentException if {@code size} is less than -1<a name="line.171"></a>
-<span class="sourceLineNo">172</span>     * @throws IllegalArgumentException if {@code headers} contains an invalid header name or value<a name="line.172"></a>
-<span class="sourceLineNo">173</span>     */<a name="line.173"></a>
-<span class="sourceLineNo">174</span>    public String send(InputStream input, int size, String contentType,<a name="line.174"></a>
-<span class="sourceLineNo">175</span>      Iterable&lt;? extends Header&gt; headers, ReportListener reportListener) {<a name="line.175"></a>
-<span class="sourceLineNo">176</span>        if (input == null)<a name="line.176"></a>
-<span class="sourceLineNo">177</span>            throw new IllegalArgumentException("null input");<a name="line.177"></a>
-<span class="sourceLineNo">178</span>        return this.doSend(input, size, contentType, headers, reportListener);<a name="line.178"></a>
-<span class="sourceLineNo">179</span>    }<a name="line.179"></a>
-<span class="sourceLineNo">180</span><a name="line.180"></a>
-<span class="sourceLineNo">181</span>    /**<a name="line.181"></a>
-<span class="sourceLineNo">182</span>     * Enqueue an outgoing message with no content.<a name="line.182"></a>
-<span class="sourceLineNo">183</span>     *<a name="line.183"></a>
-<span class="sourceLineNo">184</span>     * @param headers other headers (MIME and/or extension), or null for none<a name="line.184"></a>
-<span class="sourceLineNo">185</span>     * @param reportListener success and/or failure listener, or null for none<a name="line.185"></a>
-<span class="sourceLineNo">186</span>     * @return unique message ID, or null if this instance is closed<a name="line.186"></a>
-<span class="sourceLineNo">187</span>     * @throws IllegalArgumentException if {@code input} or {@code contentType} are not both null or both not-null<a name="line.187"></a>
-<span class="sourceLineNo">188</span>     * @throws IllegalArgumentException if {@code size} is less than -1 or {@code input} is null and size is not -1<a name="line.188"></a>
-<span class="sourceLineNo">189</span>     * @throws IllegalArgumentException if {@code headers} contains an invalid header name or value<a name="line.189"></a>
-<span class="sourceLineNo">190</span>     */<a name="line.190"></a>
-<span class="sourceLineNo">191</span>    public String send(Iterable&lt;? extends Header&gt; headers, ReportListener reportListener) {<a name="line.191"></a>
-<span class="sourceLineNo">192</span>        return this.doSend(null, -1, null, headers, reportListener);<a name="line.192"></a>
-<span class="sourceLineNo">193</span>    }<a name="line.193"></a>
-<span class="sourceLineNo">194</span><a name="line.194"></a>
-<span class="sourceLineNo">195</span>    /**<a name="line.195"></a>
-<span class="sourceLineNo">196</span>     * Cancel an outgoing message previously sent.<a name="line.196"></a>
-<span class="sourceLineNo">197</span>     *<a name="line.197"></a>
-<span class="sourceLineNo">198</span>     * @param messageId message ID returned by {@code send()}<a name="line.198"></a>
-<span class="sourceLineNo">199</span>     * @throws IllegalArgumentException if {@code messageId} is null<a name="line.199"></a>
-<span class="sourceLineNo">200</span>     * @return true if message was canceled, false if message has already been completely sent<a name="line.200"></a>
-<span class="sourceLineNo">201</span>     */<a name="line.201"></a>
-<span class="sourceLineNo">202</span>    public boolean cancel(String messageId) {<a name="line.202"></a>
-<span class="sourceLineNo">203</span>        if (messageId == null)<a name="line.203"></a>
-<span class="sourceLineNo">204</span>            throw new IllegalArgumentException("null messageId");<a name="line.204"></a>
-<span class="sourceLineNo">205</span>        synchronized (this.msrp) {<a name="line.205"></a>
-<span class="sourceLineNo">206</span>            final OutputChunks chunks = this.outputChunks.get(messageId);<a name="line.206"></a>
-<span class="sourceLineNo">207</span>            if (chunks == null)<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                return false;<a name="line.208"></a>
-<span class="sourceLineNo">209</span>            chunks.close();<a name="line.209"></a>
-<span class="sourceLineNo">210</span>            return chunks.isAborted();<a name="line.210"></a>
-<span class="sourceLineNo">211</span>        }<a name="line.211"></a>
-<span class="sourceLineNo">212</span>    }<a name="line.212"></a>
-<span class="sourceLineNo">213</span><a name="line.213"></a>
-<span class="sourceLineNo">214</span>    /**<a name="line.214"></a>
-<span class="sourceLineNo">215</span>     * Enqueue an outgoing success report.<a name="line.215"></a>
-<span class="sourceLineNo">216</span>     *<a name="line.216"></a>
-<span class="sourceLineNo">217</span>     * @param toPath path to the peer; should equal the {@code From-Path} from the received message<a name="line.217"></a>
-<span class="sourceLineNo">218</span>     * @param messageId the {@code Message-ID} from the received message<a name="line.218"></a>
-<span class="sourceLineNo">219</span>     * @param status success status, or null for default {@code 200 Message Delivered}<a name="line.219"></a>
-<span class="sourceLineNo">220</span>     * @param byteRange byte range successfully received<a name="line.220"></a>
-<span class="sourceLineNo">221</span>     * @return true if report was sent, false if report could not be sent because this instance is closed<a name="line.221"></a>
-<span class="sourceLineNo">222</span>     * @throws IllegalArgumentException if {@code toPath} is null or empty<a name="line.222"></a>
-<span class="sourceLineNo">223</span>     * @throws IllegalArgumentException if {@code messageId} is null or invalid<a name="line.223"></a>
-<span class="sourceLineNo">224</span>     * @throws IllegalArgumentException if {@code byteRange} is null<a name="line.224"></a>
-<span class="sourceLineNo">225</span>     */<a name="line.225"></a>
-<span class="sourceLineNo">226</span>    public boolean sendSuccessReport(List&lt;MsrpUri&gt; toPath, String messageId, ByteRange byteRange, Status status) {<a name="line.226"></a>
-<span class="sourceLineNo">227</span>        if (toPath == null || toPath.isEmpty() || toPath.get(0) == null)<a name="line.227"></a>
-<span class="sourceLineNo">228</span>            throw new IllegalArgumentException("null/empty toPath");<a name="line.228"></a>
-<span class="sourceLineNo">229</span>        if (messageId == null)<a name="line.229"></a>
-<span class="sourceLineNo">230</span>            throw new IllegalArgumentException("null messageId");<a name="line.230"></a>
-<span class="sourceLineNo">231</span>        if (byteRange == null)<a name="line.231"></a>
-<span class="sourceLineNo">232</span>            throw new IllegalArgumentException("null byteRange");<a name="line.232"></a>
-<span class="sourceLineNo">233</span>        if (status == null)<a name="line.233"></a>
-<span class="sourceLineNo">234</span>            status = new Status(MsrpConstants.RESPONSE_CODE_OK, "Message delivered");<a name="line.234"></a>
-<span class="sourceLineNo">235</span>        synchronized (this.msrp) {<a name="line.235"></a>
-<span class="sourceLineNo">236</span>            if (this.closed)<a name="line.236"></a>
-<span class="sourceLineNo">237</span>                return false;<a name="line.237"></a>
-<span class="sourceLineNo">238</span>            this.enqueueReport(toPath, messageId, status, byteRange);<a name="line.238"></a>
-<span class="sourceLineNo">239</span>        }<a name="line.239"></a>
-<span class="sourceLineNo">240</span>        return true;<a name="line.240"></a>
-<span class="sourceLineNo">241</span>    }<a name="line.241"></a>
-<span class="sourceLineNo">242</span><a name="line.242"></a>
-<span class="sourceLineNo">243</span>    /**<a name="line.243"></a>
-<span class="sourceLineNo">244</span>     * Enqueue an outgoing failure report.<a name="line.244"></a>
-<span class="sourceLineNo">245</span>     *<a name="line.245"></a>
-<span class="sourceLineNo">246</span>     * @param toPath path to the peer; should equal the {@code From-Path} from the received message<a name="line.246"></a>
-<span class="sourceLineNo">247</span>     * @param messageId the {@code Message-ID} from the received message<a name="line.247"></a>
-<span class="sourceLineNo">248</span>     * @param status failure status<a name="line.248"></a>
-<span class="sourceLineNo">249</span>     * @return true if report was sent, false if report could not be sent because this instance is closed<a name="line.249"></a>
-<span class="sourceLineNo">250</span>     * @throws IllegalArgumentException if {@code toPath} is null or empty<a name="line.250"></a>
-<span class="sourceLineNo">251</span>     * @throws IllegalArgumentException if {@code messageId} is null or invalid<a name="line.251"></a>
-<span class="sourceLineNo">252</span>     * @throws IllegalArgumentException if {@code status} is null<a name="line.252"></a>
-<span class="sourceLineNo">253</span>     */<a name="line.253"></a>
-<span class="sourceLineNo">254</span>    public boolean sendFailureReport(List&lt;MsrpUri&gt; toPath, String messageId, Status status) {<a name="line.254"></a>
-<span class="sourceLineNo">255</span>        if (toPath == null || toPath.isEmpty() || toPath.get(0) == null)<a name="line.255"></a>
-<span class="sourceLineNo">256</span>            throw new IllegalArgumentException("null/empty toPath");<a name="line.256"></a>
-<span class="sourceLineNo">257</span>        if (messageId == null)<a name="line.257"></a>
-<span class="sourceLineNo">258</span>            throw new IllegalArgumentException("null messageId");<a name="line.258"></a>
-<span class="sourceLineNo">259</span>        if (status == null)<a name="line.259"></a>
-<span class="sourceLineNo">260</span>            throw new IllegalArgumentException("null status");<a name="line.260"></a>
-<span class="sourceLineNo">261</span>        synchronized (this.msrp) {<a name="line.261"></a>
-<span class="sourceLineNo">262</span>            if (this.closed)<a name="line.262"></a>
-<span class="sourceLineNo">263</span>                return false;<a name="line.263"></a>
-<span class="sourceLineNo">264</span>            this.enqueueReport(toPath, messageId, status, null);<a name="line.264"></a>
-<span class="sourceLineNo">265</span>        }<a name="line.265"></a>
-<span class="sourceLineNo">266</span>        return true;<a name="line.266"></a>
-<span class="sourceLineNo">267</span>    }<a name="line.267"></a>
+<span class="sourceLineNo">088</span>    /**<a name="line.88"></a>
+<span class="sourceLineNo">089</span>     * Close this session.<a name="line.89"></a>
+<span class="sourceLineNo">090</span>     *<a name="line.90"></a>
+<span class="sourceLineNo">091</span>     * &lt;p&gt;<a name="line.91"></a>
+<span class="sourceLineNo">092</span>     * Any {@link FailureListener}s associated with queued messages will be notified.<a name="line.92"></a>
+<span class="sourceLineNo">093</span>     * This method is idempotent.<a name="line.93"></a>
+<span class="sourceLineNo">094</span>     * &lt;/p&gt;<a name="line.94"></a>
+<span class="sourceLineNo">095</span>     *<a name="line.95"></a>
+<span class="sourceLineNo">096</span>     * @param cause error that occurred, if any, otherwise null<a name="line.96"></a>
+<span class="sourceLineNo">097</span>     * @return true if this instance was closed, false if this instance was already closed<a name="line.97"></a>
+<span class="sourceLineNo">098</span>     */<a name="line.98"></a>
+<span class="sourceLineNo">099</span>    public boolean close(final Exception cause) {<a name="line.99"></a>
+<span class="sourceLineNo">100</span>        synchronized (this.msrp) {<a name="line.100"></a>
+<span class="sourceLineNo">101</span>            if (this.closed)<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                return false;<a name="line.102"></a>
+<span class="sourceLineNo">103</span>            if (this.log.isDebugEnabled())<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                this.log.debug("closing " + this);<a name="line.104"></a>
+<span class="sourceLineNo">105</span>            try {<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                this.flushOutputQueue();            // to ensure any failure responses get sent<a name="line.106"></a>
+<span class="sourceLineNo">107</span>            } catch (IOException e) {<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                // ignore<a name="line.108"></a>
+<span class="sourceLineNo">109</span>            }<a name="line.109"></a>
+<span class="sourceLineNo">110</span>            for (OutputChunks chunks : this.outputChunks.values()) {<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                chunks.close();<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                if (chunks.hasNext()) {<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                    chunks.notifyFailure(this, this.callbackExecutor,<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                      new Status(MsrpConstants.RESPONSE_CODE_SESSION_DOES_NOT_EXIST, "Session closed"));<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                }<a name="line.115"></a>
+<span class="sourceLineNo">116</span>            }<a name="line.116"></a>
+<span class="sourceLineNo">117</span>            this.inputChunks.clear();<a name="line.117"></a>
+<span class="sourceLineNo">118</span>            this.outputChunks.clear();<a name="line.118"></a>
+<span class="sourceLineNo">119</span>            this.outputTransactions.clear();<a name="line.119"></a>
+<span class="sourceLineNo">120</span>            this.outputQueue.clear();<a name="line.120"></a>
+<span class="sourceLineNo">121</span>            this.closed = true;<a name="line.121"></a>
+<span class="sourceLineNo">122</span>            this.msrp.handleSessionClosed(this);<a name="line.122"></a>
+<span class="sourceLineNo">123</span><a name="line.123"></a>
+<span class="sourceLineNo">124</span>            // Notify listener<a name="line.124"></a>
+<span class="sourceLineNo">125</span>            this.callbackExecutor.execute(new Runnable() {<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                @Override<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                public void run() {<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                    try {<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                        Session.this.listener.sessionClosed(Session.this, cause);<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                    } catch (ThreadDeath t) {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                        throw t;<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                    } catch (Throwable t) {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                        Session.this.log.error("error in listener notification", t);<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                    }<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                }<a name="line.135"></a>
+<span class="sourceLineNo">136</span>            });<a name="line.136"></a>
+<span class="sourceLineNo">137</span>            return true;<a name="line.137"></a>
+<span class="sourceLineNo">138</span>        }<a name="line.138"></a>
+<span class="sourceLineNo">139</span>    }<a name="line.139"></a>
+<span class="sourceLineNo">140</span><a name="line.140"></a>
+<span class="sourceLineNo">141</span>    /**<a name="line.141"></a>
+<span class="sourceLineNo">142</span>     * Enqueue an outgoing message specified as a {@code byte[]} array.<a name="line.142"></a>
+<span class="sourceLineNo">143</span>     *<a name="line.143"></a>
+<span class="sourceLineNo">144</span>     * @param content message content<a name="line.144"></a>
+<span class="sourceLineNo">145</span>     * @param contentType content type<a name="line.145"></a>
+<span class="sourceLineNo">146</span>     * @param headers other headers (MIME and/or extension), or null for none<a name="line.146"></a>
+<span class="sourceLineNo">147</span>     * @param reportListener success and/or failure listener, or null for none<a name="line.147"></a>
+<span class="sourceLineNo">148</span>     * @return unique message ID, or null if this instance is closed<a name="line.148"></a>
+<span class="sourceLineNo">149</span>     * @throws IllegalArgumentException if {@code content} or {@code contentType} is null<a name="line.149"></a>
+<span class="sourceLineNo">150</span>     * @throws IllegalArgumentException if {@code headers} contains an invalid header name or value<a name="line.150"></a>
+<span class="sourceLineNo">151</span>     */<a name="line.151"></a>
+<span class="sourceLineNo">152</span>    public String send(byte[] content, String contentType, Iterable&lt;? extends Header&gt; headers, ReportListener reportListener) {<a name="line.152"></a>
+<span class="sourceLineNo">153</span>        if (content == null)<a name="line.153"></a>
+<span class="sourceLineNo">154</span>            throw new IllegalArgumentException("null content");<a name="line.154"></a>
+<span class="sourceLineNo">155</span>        return this.doSend(new ByteArrayInputStream(content), content.length, contentType, headers, reportListener);<a name="line.155"></a>
+<span class="sourceLineNo">156</span>    }<a name="line.156"></a>
+<span class="sourceLineNo">157</span><a name="line.157"></a>
+<span class="sourceLineNo">158</span>    /**<a name="line.158"></a>
+<span class="sourceLineNo">159</span>     * Enqueue an outgoing message specified as an {@link InputStream}.<a name="line.159"></a>
+<span class="sourceLineNo">160</span>     * This method will handle closing the provided {@code input}.<a name="line.160"></a>
+<span class="sourceLineNo">161</span>     *<a name="line.161"></a>
+<span class="sourceLineNo">162</span>     * @param input message content input; will be eventually closed by this method<a name="line.162"></a>
+<span class="sourceLineNo">163</span>     * @param size size of input, or -1 if unknown; if positive and input is longer than this, it will be truncated<a name="line.163"></a>
+<span class="sourceLineNo">164</span>     * @param contentType content type<a name="line.164"></a>
+<span class="sourceLineNo">165</span>     * @param headers other headers (MIME and/or extension), or null for none<a name="line.165"></a>
+<span class="sourceLineNo">166</span>     * @param reportListener success and/or failure listener, or null for none<a name="line.166"></a>
+<span class="sourceLineNo">167</span>     * @return unique message ID, or null if this instance is closed<a name="line.167"></a>
+<span class="sourceLineNo">168</span>     * @throws IllegalArgumentException if {@code input} or {@code contentType} is null<a name="line.168"></a>
+<span class="sourceLineNo">169</span>     * @throws IllegalArgumentException if {@code size} is less than -1<a name="line.169"></a>
+<span class="sourceLineNo">170</span>     * @throws IllegalArgumentException if {@code headers} contains an invalid header name or value<a name="line.170"></a>
+<span class="sourceLineNo">171</span>     */<a name="line.171"></a>
+<span class="sourceLineNo">172</span>    public String send(InputStream input, int size, String contentType,<a name="line.172"></a>
+<span class="sourceLineNo">173</span>      Iterable&lt;? extends Header&gt; headers, ReportListener reportListener) {<a name="line.173"></a>
+<span class="sourceLineNo">174</span>        if (input == null)<a name="line.174"></a>
+<span class="sourceLineNo">175</span>            throw new IllegalArgumentException("null input");<a name="line.175"></a>
+<span class="sourceLineNo">176</span>        return this.doSend(input, size, contentType, headers, reportListener);<a name="line.176"></a>
+<span class="sourceLineNo">177</span>    }<a name="line.177"></a>
+<span class="sourceLineNo">178</span><a name="line.178"></a>
+<span class="sourceLineNo">179</span>    /**<a name="line.179"></a>
+<span class="sourceLineNo">180</span>     * Enqueue an outgoing message with no content.<a name="line.180"></a>
+<span class="sourceLineNo">181</span>     *<a name="line.181"></a>
+<span class="sourceLineNo">182</span>     * @param headers other headers (MIME and/or extension), or null for none<a name="line.182"></a>
+<span class="sourceLineNo">183</span>     * @param reportListener success and/or failure listener, or null for none<a name="line.183"></a>
+<span class="sourceLineNo">184</span>     * @return unique message ID, or null if this instance is closed<a name="line.184"></a>
+<span class="sourceLineNo">185</span>     * @throws IllegalArgumentException if {@code input} or {@code contentType} are not both null or both not-null<a name="line.185"></a>
+<span class="sourceLineNo">186</span>     * @throws IllegalArgumentException if {@code size} is less than -1 or {@code input} is null and size is not -1<a name="line.186"></a>
+<span class="sourceLineNo">187</span>     * @throws IllegalArgumentException if {@code headers} contains an invalid header name or value<a name="line.187"></a>
+<span class="sourceLineNo">188</span>     */<a name="line.188"></a>
+<span class="sourceLineNo">189</span>    public String send(Iterable&lt;? extends Header&gt; headers, ReportListener reportListener) {<a name="line.189"></a>
+<span class="sourceLineNo">190</span>        return this.doSend(null, -1, null, headers, reportListener);<a name="line.190"></a>
+<span class="sourceLineNo">191</span>    }<a name="line.191"></a>
+<span class="sourceLineNo">192</span><a name="line.192"></a>
+<span class="sourceLineNo">193</span>    /**<a name="line.193"></a>
+<span class="sourceLineNo">194</span>     * Cancel an outgoing message previously sent.<a name="line.194"></a>
+<span class="sourceLineNo">195</span>     *<a name="line.195"></a>
+<span class="sourceLineNo">196</span>     * @param messageId message ID returned by {@code send()}<a name="line.196"></a>
+<span class="sourceLineNo">197</span>     * @throws IllegalArgumentException if {@code messageId} is null<a name="line.197"></a>
+<span class="sourceLineNo">198</span>     * @return true if message was canceled, false if message has already been completely sent<a name="line.198"></a>
+<span class="sourceLineNo">199</span>     */<a name="line.199"></a>
+<span class="sourceLineNo">200</span>    public boolean cancel(String messageId) {<a name="line.200"></a>
+<span class="sourceLineNo">201</span>        if (messageId == null)<a name="line.201"></a>
+<span class="sourceLineNo">202</span>            throw new IllegalArgumentException("null messageId");<a name="line.202"></a>
+<span class="sourceLineNo">203</span>        synchronized (this.msrp) {<a name="line.203"></a>
+<span class="sourceLineNo">204</span>            final OutputChunks chunks = this.outputChunks.get(messageId);<a name="line.204"></a>
+<span class="sourceLineNo">205</span>            if (chunks == null)<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                return false;<a name="line.206"></a>
+<span class="sourceLineNo">207</span>            chunks.close();<a name="line.207"></a>
+<span class="sourceLineNo">208</span>            return chunks.isAborted();<a name="line.208"></a>
+<span class="sourceLineNo">209</span>        }<a name="line.209"></a>
+<span class="sourceLineNo">210</span>    }<a name="line.210"></a>
+<span class="sourceLineNo">211</span><a name="line.211"></a>
+<span class="sourceLineNo">212</span>    /**<a name="line.212"></a>
+<span class="sourceLineNo">213</span>     * Enqueue an outgoing success report.<a name="line.213"></a>
+<span class="sourceLineNo">214</span>     *<a name="line.214"></a>
+<span class="sourceLineNo">215</span>     * @param toPath path to the peer; should equal the {@code From-Path} from the received message<a name="line.215"></a>
+<span class="sourceLineNo">216</span>     * @param messageId the {@code Message-ID} from the received message<a name="line.216"></a>
+<span class="sourceLineNo">217</span>     * @param status success status, or null for default {@code 200 Message Delivered}<a name="line.217"></a>
+<span class="sourceLineNo">218</span>     * @param byteRange byte range successfully received<a name="line.218"></a>
+<span class="sourceLineNo">219</span>     * @return true if report was sent, false if report could not be sent because this instance is closed<a name="line.219"></a>
+<span class="sourceLineNo">220</span>     * @throws IllegalArgumentException if {@code toPath} is null or empty<a name="line.220"></a>
+<span class="sourceLineNo">221</span>     * @throws IllegalArgumentException if {@code messageId} is null or invalid<a name="line.221"></a>
+<span class="sourceLineNo">222</span>     * @throws IllegalArgumentException if {@code byteRange} is null<a name="line.222"></a>
+<span class="sourceLineNo">223</span>     */<a name="line.223"></a>
+<span class="sourceLineNo">224</span>    public boolean sendSuccessReport(List&lt;MsrpUri&gt; toPath, String messageId, ByteRange byteRange, Status status) {<a name="line.224"></a>
+<span class="sourceLineNo">225</span>        if (toPath == null || toPath.isEmpty() || toPath.get(0) == null)<a name="line.225"></a>
+<span class="sourceLineNo">226</span>            throw new IllegalArgumentException("null/empty toPath");<a name="line.226"></a>
+<span class="sourceLineNo">227</span>        if (messageId == null)<a name="line.227"></a>
+<span class="sourceLineNo">228</span>            throw new IllegalArgumentException("null messageId");<a name="line.228"></a>
+<span class="sourceLineNo">229</span>        if (byteRange == null)<a name="line.229"></a>
+<span class="sourceLineNo">230</span>            throw new IllegalArgumentException("null byteRange");<a name="line.230"></a>
+<span class="sourceLineNo">231</span>        if (status == null)<a name="line.231"></a>
+<span class="sourceLineNo">232</span>            status = new Status(MsrpConstants.RESPONSE_CODE_OK, "Message delivered");<a name="line.232"></a>
+<span class="sourceLineNo">233</span>        synchronized (this.msrp) {<a name="line.233"></a>
+<span class="sourceLineNo">234</span>            if (this.closed)<a name="line.234"></a>
+<span class="sourceLineNo">235</span>                return false;<a name="line.235"></a>
+<span class="sourceLineNo">236</span>            this.enqueueReport(toPath, messageId, status, byteRange);<a name="line.236"></a>
+<span class="sourceLineNo">237</span>        }<a name="line.237"></a>
+<span class="sourceLineNo">238</span>        return true;<a name="line.238"></a>
+<span class="sourceLineNo">239</span>    }<a name="line.239"></a>
+<span class="sourceLineNo">240</span><a name="line.240"></a>
+<span class="sourceLineNo">241</span>    /**<a name="line.241"></a>
+<span class="sourceLineNo">242</span>     * Enqueue an outgoing failure report.<a name="line.242"></a>
+<span class="sourceLineNo">243</span>     *<a name="line.243"></a>
+<span class="sourceLineNo">244</span>     * @param toPath path to the peer; should equal the {@code From-Path} from the received message<a name="line.244"></a>
+<span class="sourceLineNo">245</span>     * @param messageId the {@code Message-ID} from the received message<a name="line.245"></a>
+<span class="sourceLineNo">246</span>     * @param status failure status<a name="line.246"></a>
+<span class="sourceLineNo">247</span>     * @return true if report was sent, false if report could not be sent because this instance is closed<a name="line.247"></a>
+<span class="sourceLineNo">248</span>     * @throws IllegalArgumentException if {@code toPath} is null or empty<a name="line.248"></a>
+<span class="sourceLineNo">249</span>     * @throws IllegalArgumentException if {@code messageId} is null or invalid<a name="line.249"></a>
+<span class="sourceLineNo">250</span>     * @throws IllegalArgumentException if {@code status} is null<a name="line.250"></a>
+<span class="sourceLineNo">251</span>     */<a name="line.251"></a>
+<span class="sourceLineNo">252</span>    public boolean sendFailureReport(List&lt;MsrpUri&gt; toPath, String messageId, Status status) {<a name="line.252"></a>
+<span class="sourceLineNo">253</span>        if (toPath == null || toPath.isEmpty() || toPath.get(0) == null)<a name="line.253"></a>
+<span class="sourceLineNo">254</span>            throw new IllegalArgumentException("null/empty toPath");<a name="line.254"></a>
+<span class="sourceLineNo">255</span>        if (messageId == null)<a name="line.255"></a>
+<span class="sourceLineNo">256</span>            throw new IllegalArgumentException("null messageId");<a name="line.256"></a>
+<span class="sourceLineNo">257</span>        if (status == null)<a name="line.257"></a>
+<span class="sourceLineNo">258</span>            throw new IllegalArgumentException("null status");<a name="line.258"></a>
+<span class="sourceLineNo">259</span>        synchronized (this.msrp) {<a name="line.259"></a>
+<span class="sourceLineNo">260</span>            if (this.closed)<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                return false;<a name="line.261"></a>
+<span class="sourceLineNo">262</span>            this.enqueueReport(toPath, messageId, status, null);<a name="line.262"></a>
+<span class="sourceLineNo">263</span>        }<a name="line.263"></a>
+<span class="sourceLineNo">264</span>        return true;<a name="line.264"></a>
+<span class="sourceLineNo">265</span>    }<a name="line.265"></a>
+<span class="sourceLineNo">266</span><a name="line.266"></a>
+<span class="sourceLineNo">267</span>// Internal API<a name="line.267"></a>
 <span class="sourceLineNo">268</span><a name="line.268"></a>
-<span class="sourceLineNo">269</span>// Internal API<a name="line.269"></a>
-<span class="sourceLineNo">270</span><a name="line.270"></a>
-<span class="sourceLineNo">271</span>    String doSend(InputStream input, int size, String contentType,<a name="line.271"></a>
-<span class="sourceLineNo">272</span>      Iterable&lt;? extends Header&gt; headers, ReportListener reportListener) {<a name="line.272"></a>
-<span class="sourceLineNo">273</span>        synchronized (this.msrp) {<a name="line.273"></a>
-<span class="sourceLineNo">274</span><a name="line.274"></a>
-<span class="sourceLineNo">275</span>            // Sanity check<a name="line.275"></a>
-<span class="sourceLineNo">276</span>            if (this.closed)<a name="line.276"></a>
-<span class="sourceLineNo">277</span>                return null;<a name="line.277"></a>
-<span class="sourceLineNo">278</span><a name="line.278"></a>
-<span class="sourceLineNo">279</span>            // Enqueue output message<a name="line.279"></a>
-<span class="sourceLineNo">280</span>            final OutputChunks chunks = new OutputChunks(this.localURI,<a name="line.280"></a>
-<span class="sourceLineNo">281</span>              this.remoteURI, input, size, contentType, headers, reportListener);<a name="line.281"></a>
-<span class="sourceLineNo">282</span>            final String messageId = chunks.getMessageId();<a name="line.282"></a>
-<span class="sourceLineNo">283</span>            this.outputChunks.put(messageId, chunks);<a name="line.283"></a>
-<span class="sourceLineNo">284</span><a name="line.284"></a>
-<span class="sourceLineNo">285</span>            // Wakeup MSRP thread so it will invoke performHousekeeping()<a name="line.285"></a>
-<span class="sourceLineNo">286</span>            this.msrp.wakeup();<a name="line.286"></a>
-<span class="sourceLineNo">287</span><a name="line.287"></a>
-<span class="sourceLineNo">288</span>            // Done<a name="line.288"></a>
-<span class="sourceLineNo">289</span>            return messageId;<a name="line.289"></a>
-<span class="sourceLineNo">290</span>        }<a name="line.290"></a>
-<span class="sourceLineNo">291</span>    }<a name="line.291"></a>
-<span class="sourceLineNo">292</span><a name="line.292"></a>
-<span class="sourceLineNo">293</span>    Connection getConnection() {<a name="line.293"></a>
-<span class="sourceLineNo">294</span>        return this.connection;<a name="line.294"></a>
-<span class="sourceLineNo">295</span>    }<a name="line.295"></a>
-<span class="sourceLineNo">296</span>    void setConnection(Connection connection) {<a name="line.296"></a>
-<span class="sourceLineNo">297</span>        this.connection = connection;<a name="line.297"></a>
-<span class="sourceLineNo">298</span>    }<a name="line.298"></a>
+<span class="sourceLineNo">269</span>    String doSend(InputStream input, int size, String contentType,<a name="line.269"></a>
+<span class="sourceLineNo">270</span>      Iterable&lt;? extends Header&gt; headers, ReportListener reportListener) {<a name="line.270"></a>
+<span class="sourceLineNo">271</span>        synchronized (this.msrp) {<a name="line.271"></a>
+<span class="sourceLineNo">272</span><a name="line.272"></a>
+<span class="sourceLineNo">273</span>            // Sanity check<a name="line.273"></a>
+<span class="sourceLineNo">274</span>            if (this.closed)<a name="line.274"></a>
+<span class="sourceLineNo">275</span>                return null;<a name="line.275"></a>
+<span class="sourceLineNo">276</span><a name="line.276"></a>
+<span class="sourceLineNo">277</span>            // Enqueue output message<a name="line.277"></a>
+<span class="sourceLineNo">278</span>            final OutputChunks chunks = new OutputChunks(this.localURI,<a name="line.278"></a>
+<span class="sourceLineNo">279</span>              this.remoteURI, input, size, contentType, headers, reportListener);<a name="line.279"></a>
+<span class="sourceLineNo">280</span>            final String messageId = chunks.getMessageId();<a name="line.280"></a>
+<span class="sourceLineNo">281</span>            this.outputChunks.put(messageId, chunks);<a name="line.281"></a>
+<span class="sourceLineNo">282</span><a name="line.282"></a>
+<span class="sourceLineNo">283</span>            // Wakeup MSRP thread so it will invoke performHousekeeping()<a name="line.283"></a>
+<span class="sourceLineNo">284</span>            this.msrp.wakeup();<a name="line.284"></a>
+<span class="sourceLineNo">285</span><a name="line.285"></a>
+<span class="sourceLineNo">286</span>            // Done<a name="line.286"></a>
+<span class="sourceLineNo">287</span>            return messageId;<a name="line.287"></a>
+<span class="sourceLineNo">288</span>        }<a name="line.288"></a>
+<span class="sourceLineNo">289</span>    }<a name="line.289"></a>
+<span class="sourceLineNo">290</span><a name="line.290"></a>
+<span class="sourceLineNo">291</span>    Connection getConnection() {<a name="line.291"></a>
+<span class="sourceLineNo">292</span>        return this.connection;<a name="line.292"></a>
+<span class="sourceLineNo">293</span>    }<a name="line.293"></a>
+<span class="sourceLineNo">294</span>    void setConnection(Connection connection) {<a name="line.294"></a>
+<span class="sourceLineNo">295</span>        this.connection = connection;<a name="line.295"></a>
+<span class="sourceLineNo">296</span>    }<a name="line.296"></a>
+<span class="sourceLineNo">297</span><a name="line.297"></a>
+<span class="sourceLineNo">298</span>// Incoming Message Handling<a name="line.298"></a>
 <span class="sourceLineNo">299</span><a name="line.299"></a>
-<span class="sourceLineNo">300</span>// Incoming Message Handling<a name="line.300"></a>
-<span class="sourceLineNo">301</span><a name="line.301"></a>
-<span class="sourceLineNo">302</span>    // Handle an incoming {@link MsrpMessage} received on this session.<a name="line.302"></a>
-<span class="sourceLineNo">303</span>    void handleMessage(MsrpMessage msg) {<a name="line.303"></a>
-<span class="sourceLineNo">304</span><a name="line.304"></a>
-<span class="sourceLineNo">305</span>        // Sanity check<a name="line.305"></a>
-<span class="sourceLineNo">306</span>        if (msg == null)<a name="line.306"></a>
-<span class="sourceLineNo">307</span>            throw new IllegalArgumentException("null msg");<a name="line.307"></a>
-<span class="sourceLineNo">308</span>        if (this.closed)<a name="line.308"></a>
-<span class="sourceLineNo">309</span>            throw new IllegalStateException("session is closed");<a name="line.309"></a>
-<span class="sourceLineNo">310</span><a name="line.310"></a>
-<span class="sourceLineNo">311</span>        // Handle request or response<a name="line.311"></a>
-<span class="sourceLineNo">312</span>        if (msg instanceof MsrpRequest)<a name="line.312"></a>
-<span class="sourceLineNo">313</span>            this.handleRequest((MsrpRequest)msg);<a name="line.313"></a>
-<span class="sourceLineNo">314</span>        else if (msg instanceof MsrpResponse)<a name="line.314"></a>
-<span class="sourceLineNo">315</span>            this.handleResponse((MsrpResponse)msg);<a name="line.315"></a>
-<span class="sourceLineNo">316</span>        else<a name="line.316"></a>
-<span class="sourceLineNo">317</span>            this.log.error("Session.handleInput(): ignoring unknown message of type " + msg.getClass().getName());<a name="line.317"></a>
-<span class="sourceLineNo">318</span>    }<a name="line.318"></a>
-<span class="sourceLineNo">319</span><a name="line.319"></a>
-<span class="sourceLineNo">320</span>    // Handle request<a name="line.320"></a>
-<span class="sourceLineNo">321</span>    private void handleRequest(MsrpRequest request) {<a name="line.321"></a>
-<span class="sourceLineNo">322</span>        switch (request.getMethod()) {<a name="line.322"></a>
-<span class="sourceLineNo">323</span>        case MsrpConstants.METHOD_SEND:<a name="line.323"></a>
-<span class="sourceLineNo">324</span>            this.handleSend(request);<a name="line.324"></a>
-<span class="sourceLineNo">325</span>            break;<a name="line.325"></a>
-<span class="sourceLineNo">326</span>        case MsrpConstants.METHOD_REPORT:<a name="line.326"></a>
-<span class="sourceLineNo">327</span>            this.handleReport(request);<a name="line.327"></a>
-<span class="sourceLineNo">328</span>            break;<a name="line.328"></a>
-<span class="sourceLineNo">329</span>        default:<a name="line.329"></a>
-<span class="sourceLineNo">330</span>            if (!FailureReport.NO.equals(request.getHeaders().getFailureReport())) {<a name="line.330"></a>
-<span class="sourceLineNo">331</span>                this.outputQueue.add(Session.createMsrpResponse(request,<a name="line.331"></a>
-<span class="sourceLineNo">332</span>                  MsrpConstants.RESPONSE_CODE_UNKNOWN_METHOD, "Unknown method `" + request.getMethod() + "'"));<a name="line.332"></a>
-<span class="sourceLineNo">333</span>            }<a name="line.333"></a>
-<span class="sourceLineNo">334</span>            return;<a name="line.334"></a>
-<span class="sourceLineNo">335</span>        }<a name="line.335"></a>
-<span class="sourceLineNo">336</span>    }<a name="line.336"></a>
-<span class="sourceLineNo">337</span><a name="line.337"></a>
-<span class="sourceLineNo">338</span>    // Handle SEND request<a name="line.338"></a>
-<span class="sourceLineNo">339</span>    private void handleSend(MsrpRequest request) {<a name="line.339"></a>
-<span class="sourceLineNo">340</span><a name="line.340"></a>
-<span class="sourceLineNo">341</span>        // Get/create input message<a name="line.341"></a>
-<span class="sourceLineNo">342</span>        final MsrpHeaders headers = request.getHeaders();<a name="line.342"></a>
-<span class="sourceLineNo">343</span>        final String messageId = headers.getMessageId();<a name="line.343"></a>
-<span class="sourceLineNo">344</span>        InputChunks chunks0 = this.inputChunks.get(messageId);<a name="line.344"></a>
-<span class="sourceLineNo">345</span>        if (chunks0 == null) {<a name="line.345"></a>
-<span class="sourceLineNo">346</span>            chunks0 = new InputChunks(messageId, this.msrp.getMaxContentLength());<a name="line.346"></a>
-<span class="sourceLineNo">347</span>            this.inputChunks.put(messageId, chunks0);<a name="line.347"></a>
-<span class="sourceLineNo">348</span>        }<a name="line.348"></a>
-<span class="sourceLineNo">349</span>        final InputChunks chunks = chunks0;<a name="line.349"></a>
-<span class="sourceLineNo">350</span><a name="line.350"></a>
-<span class="sourceLineNo">351</span>        // Process request<a name="line.351"></a>
-<span class="sourceLineNo">352</span>        final boolean complete;<a name="line.352"></a>
-<span class="sourceLineNo">353</span>        try {<a name="line.353"></a>
-<span class="sourceLineNo">354</span>            complete = chunks.handleSend(request);<a name="line.354"></a>
-<span class="sourceLineNo">355</span>        } catch (ProtocolException e) {<a name="line.355"></a>
-<span class="sourceLineNo">356</span>            if (!FailureReport.NO.equals(headers.getFailureReport())) {<a name="line.356"></a>
-<span class="sourceLineNo">357</span>                this.outputQueue.add(Session.createMsrpResponse(request,<a name="line.357"></a>
-<span class="sourceLineNo">358</span>                  MsrpConstants.RESPONSE_CODE_BAD_REQUEST, "Protocol error: " + e.getMessage()));<a name="line.358"></a>
-<span class="sourceLineNo">359</span>            }<a name="line.359"></a>
-<span class="sourceLineNo">360</span>            this.close(e);<a name="line.360"></a>
-<span class="sourceLineNo">361</span>            return;<a name="line.361"></a>
-<span class="sourceLineNo">362</span>        }<a name="line.362"></a>
-<span class="sourceLineNo">363</span><a name="line.363"></a>
-<span class="sourceLineNo">364</span>        // Reply to transaction<a name="line.364"></a>
-<span class="sourceLineNo">365</span>        if (!FailureReport.NO.equals(headers.getFailureReport()) &amp;&amp; !FailureReport.PARTIAL.equals(headers.getFailureReport()))<a name="line.365"></a>
-<span class="sourceLineNo">366</span>            this.outputQueue.add(Session.createMsrpResponse(request, MsrpConstants.RESPONSE_CODE_OK, "OK"));<a name="line.366"></a>
-<span class="sourceLineNo">367</span><a name="line.367"></a>
-<span class="sourceLineNo">368</span>        // Is message aborted?<a name="line.368"></a>
-<span class="sourceLineNo">369</span>        if (chunks.isAborted()) {<a name="line.369"></a>
-<span class="sourceLineNo">370</span>            this.inputChunks.remove(messageId);<a name="line.370"></a>
-<span class="sourceLineNo">371</span>            return;<a name="line.371"></a>
-<span class="sourceLineNo">372</span>        }<a name="line.372"></a>
-<span class="sourceLineNo">373</span><a name="line.373"></a>
-<span class="sourceLineNo">374</span>        // Is message still incomplete?<a name="line.374"></a>
-<span class="sourceLineNo">375</span>        if (!complete)<a name="line.375"></a>
-<span class="sourceLineNo">376</span>            return;<a name="line.376"></a>
-<span class="sourceLineNo">377</span><a name="line.377"></a>
-<span class="sourceLineNo">378</span>        // Remove from incoming messages<a name="line.378"></a>
-<span class="sourceLineNo">379</span>        this.inputChunks.remove(messageId);<a name="line.379"></a>
-<span class="sourceLineNo">380</span><a name="line.380"></a>
-<span class="sourceLineNo">381</span>        // Notify listener of reception of complete message<a name="line.381"></a>
-<span class="sourceLineNo">382</span>        final byte[] content = chunks.getContent();<a name="line.382"></a>
-<span class="sourceLineNo">383</span>        final TreeSet&lt;Header&gt; combinedHeaders = new TreeSet&lt;Header&gt;(Header.SORT_BY_NAME);<a name="line.383"></a>
-<span class="sourceLineNo">384</span>        combinedHeaders.addAll(headers.getMimeHeaders());<a name="line.384"></a>
-<span class="sourceLineNo">385</span>        combinedHeaders.addAll(headers.getExtensionHeaders());<a name="line.385"></a>
-<span class="sourceLineNo">386</span>        this.callbackExecutor.execute(new Runnable() {<a name="line.386"></a>
-<span class="sourceLineNo">387</span>            @Override<a name="line.387"></a>
-<span class="sourceLineNo">388</span>            public void run() {<a name="line.388"></a>
-<span class="sourceLineNo">389</span>                try {<a name="line.389"></a>
-<span class="sourceLineNo">390</span>                    Session.this.listener.sessionReceivedMessage(Session.this, chunks.getFromPath(), messageId,<a name="line.390"></a>
-<span class="sourceLineNo">391</span>                      content, headers.getContentType(), combinedHeaders, chunks.isSuccessReport(),<a name="line.391"></a>
-<span class="sourceLineNo">392</span>                      FailureReport.YES.equals(chunks.getFailureReport()));<a name="line.392"></a>
-<span class="sourceLineNo">393</span>                } catch (ThreadDeath t) {<a name="line.393"></a>
-<span class="sourceLineNo">394</span>                    throw t;<a name="line.394"></a>
-<span class="sourceLineNo">395</span>                } catch (Throwable t) {<a name="line.395"></a>
-<span class="sourceLineNo">396</span>                    Session.this.log.error("error in listener notification", t);<a name="line.396"></a>
-<span class="sourceLineNo">397</span>                }<a name="line.397"></a>
-<span class="sourceLineNo">398</span>            }<a name="line.398"></a>
-<span class="sourceLineNo">399</span>        });<a name="line.399"></a>
-<span class="sourceLineNo">400</span>    }<a name="line.400"></a>
-<span class="sourceLineNo">401</span><a name="line.401"></a>
-<span class="sourceLineNo">402</span>    // Handle REPORT request<a name="line.402"></a>
-<span class="sourceLineNo">403</span>    private void handleReport(MsrpRequest request) {<a name="line.403"></a>
-<span class="sourceLineNo">404</span><a name="line.404"></a>
-<span class="sourceLineNo">405</span>        // Extract info<a name="line.405"></a>
-<span class="sourceLineNo">406</span>        final MsrpHeaders requestHeaders = request.getHeaders();<a name="line.406"></a>
-<span class="sourceLineNo">407</span>        final String messageId = requestHeaders.getMessageId();<a name="line.407"></a>
-<span class="sourceLineNo">408</span>        if (messageId == null) {<a name="line.408"></a>
-<span class="sourceLineNo">409</span>            this.log.warn("rec'd REPORT with no message ID in session from " + this.remoteURI + ", ignoring");<a name="line.409"></a>
-<span class="sourceLineNo">410</span>            return;<a name="line.410"></a>
-<span class="sourceLineNo">411</span>        }<a name="line.411"></a>
-<span class="sourceLineNo">412</span>        final Status status = requestHeaders.getStatus();<a name="line.412"></a>
-<span class="sourceLineNo">413</span>        if (status == null) {<a name="line.413"></a>
-<span class="sourceLineNo">414</span>            this.log.warn("rec'd REPORT with no Status in session from " + this.remoteURI + ", ignoring");<a name="line.414"></a>
-<span class="sourceLineNo">415</span>            return;<a name="line.415"></a>
-<span class="sourceLineNo">416</span>        }<a name="line.416"></a>
-<span class="sourceLineNo">417</span>        final boolean success = status.getNamespace() == 0 &amp;&amp; status.getCode() / 100 == 2;<a name="line.417"></a>
-<span class="sourceLineNo">418</span>        final ByteRange byteRange = requestHeaders.getByteRange();<a name="line.418"></a>
-<span class="sourceLineNo">419</span>        if (success &amp;&amp; byteRange == null) {<a name="line.419"></a>
-<span class="sourceLineNo">420</span>            this.log.warn("rec'd success REPORT with no ByteRange from " + this.remoteURI + ", ignoring");<a name="line.420"></a>
-<span class="sourceLineNo">421</span>            return;<a name="line.421"></a>
-<span class="sourceLineNo">422</span>        }<a name="line.422"></a>
-<span class="sourceLineNo">423</span><a name="line.423"></a>
-<span class="sourceLineNo">424</span>        // Find outgoing message<a name="line.424"></a>
-<span class="sourceLineNo">425</span>        final OutputChunks chunks = this.outputChunks.get(messageId);<a name="line.425"></a>
-<span class="sourceLineNo">426</span>        if (chunks == null)<a name="line.426"></a>
-<span class="sourceLineNo">427</span>            return;<a name="line.427"></a>
-<span class="sourceLineNo">428</span><a name="line.428"></a>
-<span class="sourceLineNo">429</span>        // Notify listener<a name="line.429"></a>
-<span class="sourceLineNo">430</span>        if (success)<a name="line.430"></a>
-<span class="sourceLineNo">431</span>            chunks.notifySuccess(this, this.callbackExecutor, byteRange);<a name="line.431"></a>
-<span class="sourceLineNo">432</span>        else<a name="line.432"></a>
-<span class="sourceLineNo">433</span>            chunks.notifyFailure(this, this.callbackExecutor, status);<a name="line.433"></a>
-<span class="sourceLineNo">434</span>    }<a name="line.434"></a>
-<span class="sourceLineNo">435</span><a name="line.435"></a>
-<span class="sourceLineNo">436</span>    // Handle transaction response<a name="line.436"></a>
-<span class="sourceLineNo">437</span>    private void handleResponse(MsrpResponse response) {<a name="line.437"></a>
-<span class="sourceLineNo">438</span><a name="line.438"></a>
-<span class="sourceLineNo">439</span>        // Find the corresponding transaction and output chunks<a name="line.439"></a>
-<span class="sourceLineNo">440</span>        final OutputTransaction transaction = this.outputTransactions.remove(response.getTransactionId());<a name="line.440"></a>
-<span class="sourceLineNo">441</span>        if (transaction == null)<a name="line.441"></a>
-<span class="sourceLineNo">442</span>            return;<a name="line.442"></a>
-<span class="sourceLineNo">443</span>        final OutputChunks chunks = transaction.getOutputChunks();<a name="line.443"></a>
-<span class="sourceLineNo">444</span><a name="line.444"></a>
-<span class="sourceLineNo">445</span>        // Success is easy :-)<a name="line.445"></a>
-<span class="sourceLineNo">446</span>        if (response.getCode() &lt; 300)<a name="line.446"></a>
-<span class="sourceLineNo">447</span>            return;<a name="line.447"></a>
-<span class="sourceLineNo">448</span><a name="line.448"></a>
-<span class="sourceLineNo">449</span>        // Notify failure listener, if any<a name="line.449"></a>
-<span class="sourceLineNo">450</span>        chunks.notifyFailure(this, this.callbackExecutor, response.toStatus());<a name="line.450"></a>
-<span class="sourceLineNo">451</span><a name="line.451"></a>
-<span class="sourceLineNo">452</span>        // Interrupt output chunks<a name="line.452"></a>
-<span class="sourceLineNo">453</span>        chunks.close();<a name="line.453"></a>
-<span class="sourceLineNo">454</span><a name="line.454"></a>
-<span class="sourceLineNo">455</span>        // Handle specific codes<a name="line.455"></a>
-<span class="sourceLineNo">456</span>        switch (response.getCode()) {<a name="line.456"></a>
-<span class="sourceLineNo">457</span>        case MsrpConstants.RESPONSE_CODE_SESSION_DOES_NOT_EXIST:<a name="line.457"></a>
-<span class="sourceLineNo">458</span>        case MsrpConstants.RESPONSE_CODE_SESSION_ALREADY_BOUND:<a name="line.458"></a>
-<span class="sourceLineNo">459</span>            this.close(new Exception("rec'd error from remote: " + response.getResultString()));<a name="line.459"></a>
+<span class="sourceLineNo">300</span>    // Handle an incoming {@link MsrpMessage} received on this session.<a name="line.300"></a>
+<span class="sourceLineNo">301</span>    void handleMessage(MsrpMessage msg) {<a name="line.301"></a>
+<span class="sourceLineNo">302</span><a name="line.302"></a>
+<span class="sourceLineNo">303</span>        // Sanity check<a name="line.303"></a>
+<span class="sourceLineNo">304</span>        if (msg == null)<a name="line.304"></a>
+<span class="sourceLineNo">305</span>            throw new IllegalArgumentException("null msg");<a name="line.305"></a>
+<span class="sourceLineNo">306</span>        if (this.closed)<a name="line.306"></a>
+<span class="sourceLineNo">307</span>            throw new IllegalStateException("session is closed");<a name="line.307"></a>
+<span class="sourceLineNo">308</span><a name="line.308"></a>
+<span class="sourceLineNo">309</span>        // Handle request or response<a name="line.309"></a>
+<span class="sourceLineNo">310</span>        if (msg instanceof MsrpRequest)<a name="line.310"></a>
+<span class="sourceLineNo">311</span>            this.handleRequest((MsrpRequest)msg);<a name="line.311"></a>
+<span class="sourceLineNo">312</span>        else if (msg instanceof MsrpResponse)<a name="line.312"></a>
+<span class="sourceLineNo">313</span>            this.handleResponse((MsrpResponse)msg);<a name="line.313"></a>
+<span class="sourceLineNo">314</span>        else<a name="line.314"></a>
+<span class="sourceLineNo">315</span>            this.log.error("Session.handleInput(): ignoring unknown message of type " + msg.getClass().getName());<a name="line.315"></a>
+<span class="sourceLineNo">316</span>    }<a name="line.316"></a>
+<span class="sourceLineNo">317</span><a name="line.317"></a>
+<span class="sourceLineNo">318</span>    // Handle request<a name="line.318"></a>
+<span class="sourceLineNo">319</span>    private void handleRequest(MsrpRequest request) {<a name="line.319"></a>
+<span class="sourceLineNo">320</span>        switch (request.getMethod()) {<a name="line.320"></a>
+<span class="sourceLineNo">321</span>        case MsrpConstants.METHOD_SEND:<a name="line.321"></a>
+<span class="sourceLineNo">322</span>            this.handleSend(request);<a name="line.322"></a>
+<span class="sourceLineNo">323</span>            break;<a name="line.323"></a>
+<span class="sourceLineNo">324</span>        case MsrpConstants.METHOD_REPORT:<a name="line.324"></a>
+<span class="sourceLineNo">325</span>            this.handleReport(request);<a name="line.325"></a>
+<span class="sourceLineNo">326</span>            break;<a name="line.326"></a>
+<span class="sourceLineNo">327</span>        default:<a name="line.327"></a>
+<span class="sourceLineNo">328</span>            if (!FailureReport.NO.equals(request.getHeaders().getFailureReport())) {<a name="line.328"></a>
+<span class="sourceLineNo">329</span>                this.outputQueue.add(Session.createMsrpResponse(request,<a name="line.329"></a>
+<span class="sourceLineNo">330</span>                  MsrpConstants.RESPONSE_CODE_UNKNOWN_METHOD, "Unknown method `" + request.getMethod() + "'"));<a name="line.330"></a>
+<span class="sourceLineNo">331</span>            }<a name="line.331"></a>
+<span class="sourceLineNo">332</span>            return;<a name="line.332"></a>
+<span class="sourceLineNo">333</span>        }<a name="line.333"></a>
+<span class="sourceLineNo">334</span>    }<a name="line.334"></a>
+<span class="sourceLineNo">335</span><a name="line.335"></a>
+<span class="sourceLineNo">336</span>    // Handle SEND request<a name="line.336"></a>
+<span class="sourceLineNo">337</span>    private void handleSend(MsrpRequest request) {<a name="line.337"></a>
+<span class="sourceLineNo">338</span><a name="line.338"></a>
+<span class="sourceLineNo">339</span>        // Get/create input message<a name="line.339"></a>
+<span class="sourceLineNo">340</span>        final MsrpHeaders headers = request.getHeaders();<a name="line.340"></a>
+<span class="sourceLineNo">341</span>        final String messageId = headers.getMessageId();<a name="line.341"></a>
+<span class="sourceLineNo">342</span>        InputChunks chunks0 = this.inputChunks.get(messageId);<a name="line.342"></a>
+<span class="sourceLineNo">343</span>        if (chunks0 == null) {<a name="line.343"></a>
+<span class="sourceLineNo">344</span>            chunks0 = new InputChunks(messageId, this.msrp.getMaxContentLength());<a name="line.344"></a>
+<span class="sourceLineNo">345</span>            this.inputChunks.put(messageId, chunks0);<a name="line.345"></a>
+<span class="sourceLineNo">346</span>        }<a name="line.346"></a>
+<span class="sourceLineNo">347</span>        final InputChunks chunks = chunks0;<a name="line.347"></a>
+<span class="sourceLineNo">348</span><a name="line.348"></a>
+<span class="sourceLineNo">349</span>        // Process request<a name="line.349"></a>
+<span class="sourceLineNo">350</span>        final boolean complete;<a name="line.350"></a>
+<span class="sourceLineNo">351</span>        try {<a name="line.351"></a>
+<span class="sourceLineNo">352</span>            complete = chunks.handleSend(request);<a name="line.352"></a>
+<span class="sourceLineNo">353</span>        } catch (ProtocolException e) {<a name="line.353"></a>
+<span class="sourceLineNo">354</span>            if (!FailureReport.NO.equals(headers.getFailureReport())) {<a name="line.354"></a>
+<span class="sourceLineNo">355</span>                this.outputQueue.add(Session.createMsrpResponse(request,<a name="line.355"></a>
+<span class="sourceLineNo">356</span>                  MsrpConstants.RESPONSE_CODE_BAD_REQUEST, "Protocol error: " + e.getMessage()));<a name="line.356"></a>
+<span class="sourceLineNo">357</span>            }<a name="line.357"></a>
+<span class="sourceLineNo">358</span>            this.close(e);<a name="line.358"></a>
+<span class="sourceLineNo">359</span>            return;<a name="line.359"></a>
+<span class="sourceLineNo">360</span>        }<a name="line.360"></a>
+<span class="sourceLineNo">361</span><a name="line.361"></a>
+<span class="sourceLineNo">362</span>        // Reply to transaction<a name="line.362"></a>
+<span class="sourceLineNo">363</span>        if (!FailureReport.NO.equals(headers.getFailureReport()) &amp;&amp; !FailureReport.PARTIAL.equals(headers.getFailureReport()))<a name="line.363"></a>
+<span class="sourceLineNo">364</span>            this.outputQueue.add(Session.createMsrpResponse(request, MsrpConstants.RESPONSE_CODE_OK, "OK"));<a name="line.364"></a>
+<span class="sourceLineNo">365</span><a name="line.365"></a>
+<span class="sourceLineNo">366</span>        // Is message aborted?<a name="line.366"></a>
+<span class="sourceLineNo">367</span>        if (chunks.isAborted()) {<a name="line.367"></a>
+<span class="sourceLineNo">368</span>            this.inputChunks.remove(messageId);<a name="line.368"></a>
+<span class="sourceLineNo">369</span>            return;<a name="line.369"></a>
+<span class="sourceLineNo">370</span>        }<a name="line.370"></a>
+<span class="sourceLineNo">371</span><a name="line.371"></a>
+<span class="sourceLineNo">372</span>        // Is message still incomplete?<a name="line.372"></a>
+<span class="sourceLineNo">373</span>        if (!complete)<a name="line.373"></a>
+<span class="sourceLineNo">374</span>            return;<a name="line.374"></a>
+<span class="sourceLineNo">375</span><a name="line.375"></a>
+<span class="sourceLineNo">376</span>        // Remove from incoming messages<a name="line.376"></a>
+<span class="sourceLineNo">377</span>        this.inputChunks.remove(messageId);<a name="line.377"></a>
+<span class="sourceLineNo">378</span><a name="line.378"></a>
+<span class="sourceLineNo">379</span>        // Notify listener of reception of complete message<a name="line.379"></a>
+<span class="sourceLineNo">380</span>        final byte[] content = chunks.getContent();<a name="line.380"></a>
+<span class="sourceLineNo">381</span>        final TreeSet&lt;Header&gt; combinedHeaders = new TreeSet&lt;Header&gt;(Header.SORT_BY_NAME);<a name="line.381"></a>
+<span class="sourceLineNo">382</span>        combinedHeaders.addAll(headers.getMimeHeaders());<a name="line.382"></a>
+<span class="sourceLineNo">383</span>        combinedHeaders.addAll(headers.getExtensionHeaders());<a name="line.383"></a>
+<span class="sourceLineNo">384</span>        this.callbackExecutor.execute(new Runnable() {<a name="line.384"></a>
+<span class="sourceLineNo">385</span>            @Override<a name="line.385"></a>
+<span class="sourceLineNo">386</span>            public void run() {<a name="line.386"></a>
+<span class="sourceLineNo">387</span>                try {<a name="line.387"></a>
+<span class="sourceLineNo">388</span>                    Session.this.listener.sessionReceivedMessage(Session.this, chunks.getFromPath(), messageId,<a name="line.388"></a>
+<span class="sourceLineNo">389</span>                      content, headers.getContentType(), combinedHeaders, chunks.isSuccessReport(),<a name="line.389"></a>
+<span class="sourceLineNo">390</span>                      FailureReport.YES.equals(chunks.getFailureReport()));<a name="line.390"></a>
+<span class="sourceLineNo">391</span>                } catch (ThreadDeath t) {<a name="line.391"></a>
+<span class="sourceLineNo">392</span>                    throw t;<a name="line.392"></a>
+<span class="sourceLineNo">393</span>                } catch (Throwable t) {<a name="line.393"></a>
+<span class="sourceLineNo">394</span>                    Session.this.log.error("error in listener notification", t);<a name="line.394"></a>
+<span class="sourceLineNo">395</span>                }<a name="line.395"></a>
+<span class="sourceLineNo">396</span>            }<a name="line.396"></a>
+<span class="sourceLineNo">397</span>        });<a name="line.397"></a>
+<span class="sourceLineNo">398</span>    }<a name="line.398"></a>
+<span class="sourceLineNo">399</span><a name="line.399"></a>
+<span class="sourceLineNo">400</span>    // Handle REPORT request<a name="line.400"></a>
+<span class="sourceLineNo">401</span>    private void handleReport(MsrpRequest request) {<a name="line.401"></a>
+<span class="sourceLineNo">402</span><a name="line.402"></a>
+<span class="sourceLineNo">403</span>        // Extract info<a name="line.403"></a>
+<span class="sourceLineNo">404</span>        final MsrpHeaders requestHeaders = request.getHeaders();<a name="line.404"></a>
+<span class="sourceLineNo">405</span>        final String messageId = requestHeaders.getMessageId();<a name="line.405"></a>
+<span class="sourceLineNo">406</span>        if (messageId == null) {<a name="line.406"></a>
+<span class="sourceLineNo">407</span>            this.log.warn("rec'd REPORT with no message ID in session from " + this.remoteURI + ", ignoring");<a name="line.407"></a>
+<span class="sourceLineNo">408</span>            return;<a name="line.408"></a>
+<span class="sourceLineNo">409</span>        }<a name="line.409"></a>
+<span class="sourceLineNo">410</span>        final Status status = requestHeaders.getStatus();<a name="line.410"></a>
+<span class="sourceLineNo">411</span>        if (status == null) {<a name="line.411"></a>
+<span class="sourceLineNo">412</span>            this.log.warn("rec'd REPORT with no Status in session from " + this.remoteURI + ", ignoring");<a name="line.412"></a>
+<span class="sourceLineNo">413</span>            return;<a name="line.413"></a>
+<span class="sourceLineNo">414</span>        }<a name="line.414"></a>
+<span class="sourceLineNo">415</span>        final boolean success = status.getNamespace() == 0 &amp;&amp; status.getCode() / 100 == 2;<a name="line.415"></a>
+<span class="sourceLineNo">416</span>        final ByteRange byteRange = requestHeaders.getByteRange();<a name="line.416"></a>
+<span class="sourceLineNo">417</span>        if (success &amp;&amp; byteRange == null) {<a name="line.417"></a>
+<span class="sourceLineNo">418</span>            this.log.warn("rec'd success REPORT with no ByteRange from " + this.remoteURI + ", ignoring");<a name="line.418"></a>
+<span class="sourceLineNo">419</span>            return;<a name="line.419"></a>
+<span class="sourceLineNo">420</span>        }<a name="line.420"></a>
+<span class="sourceLineNo">421</span><a name="line.421"></a>
+<span class="sourceLineNo">422</span>        // Find outgoing message<a name="line.422"></a>
+<span class="sourceLineNo">423</span>        final OutputChunks chunks = this.outputChunks.get(messageId);<a name="line.423"></a>
+<span class="sourceLineNo">424</span>        if (chunks == null)<a name="line.424"></a>
+<span class="sourceLineNo">425</span>            return;<a name="line.425"></a>
+<span class="sourceLineNo">426</span><a name="line.426"></a>
+<span class="sourceLineNo">427</span>        // Notify listener<a name="line.427"></a>
+<span class="sourceLineNo">428</span>        if (success)<a name="line.428"></a>
+<span class="sourceLineNo">429</span>            chunks.notifySuccess(this, this.callbackExecutor, byteRange);<a name="line.429"></a>
+<span class="sourceLineNo">430</span>        else<a name="line.430"></a>
+<span class="sourceLineNo">431</span>            chunks.notifyFailure(this, this.callbackExecutor, status);<a name="line.431"></a>
+<span class="sourceLineNo">432</span>    }<a name="line.432"></a>
+<span class="sourceLineNo">433</span><a name="line.433"></a>
+<span class="sourceLineNo">434</span>    // Handle transaction response<a name="line.434"></a>
+<span class="sourceLineNo">435</span>    private void handleResponse(MsrpResponse response) {<a name="line.435"></a>
+<span class="sourceLineNo">436</span><a name="line.436"></a>
+<span class="sourceLineNo">437</span>        // Find the corresponding transaction and output chunks<a name="line.437"></a>
+<span class="sourceLineNo">438</span>        final OutputTransaction transaction = this.outputTransactions.remove(response.getTransactionId());<a name="line.438"></a>
+<span class="sourceLineNo">439</span>        if (transaction == null)<a name="line.439"></a>
+<span class="sourceLineNo">440</span>            return;<a name="line.440"></a>
+<span class="sourceLineNo">441</span>        final OutputChunks chunks = transaction.getOutputChunks();<a name="line.441"></a>
+<span class="sourceLineNo">442</span><a name="line.442"></a>
+<span class="sourceLineNo">443</span>        // Success is easy :-)<a name="line.443"></a>
+<span class="sourceLineNo">444</span>        if (response.getCode() &lt; 300)<a name="line.444"></a>
+<span class="sourceLineNo">445</span>            return;<a name="line.445"></a>
+<span class="sourceLineNo">446</span><a name="line.446"></a>
+<span class="sourceLineNo">447</span>        // Notify failure listener, if any<a name="line.447"></a>
+<span class="sourceLineNo">448</span>        chunks.notifyFailure(this, this.callbackExecutor, response.toStatus());<a name="line.448"></a>
+<span class="sourceLineNo">449</span><a name="line.449"></a>
+<span class="sourceLineNo">450</span>        // Interrupt output chunks<a name="line.450"></a>
+<span class="sourceLineNo">451</span>        chunks.close();<a name="line.451"></a>
+<span class="sourceLineNo">452</span><a name="line.452"></a>
+<span class="sourceLineNo">453</span>        // Handle specific codes<a name="line.453"></a>
+<span class="sourceLineNo">454</span>        switch (response.getCode()) {<a name="line.454"></a>
+<span class="sourceLineNo">455</span>        case MsrpConstants.RESPONSE_CODE_SESSION_DOES_NOT_EXIST:<a name="line.455"></a>
+<span class="sourceLineNo">456</span>        case MsrpConstants.RESPONSE_CODE_SESSION_ALREADY_BOUND:<a name="line.456"></a>
+<span class="sourceLineNo">457</span>            this.close(new Exception("rec'd error from remote: " + response.getResultString()));<a name="line.457"></a>
+<span class="sourceLineNo">458</span>            break;<a name="line.458"></a>
+<span class="sourceLineNo">459</span>        default:<a name="line.459"></a>
 <span class="sourceLineNo">460</span>            break;<a name="line.460"></a>
-<span class="sourceLineNo">461</span>        default:<a name="line.461"></a>
-<span class="sourceLineNo">462</span>            break;<a name="line.462"></a>
-<span class="sourceLineNo">463</span>        }<a name="line.463"></a>
-<span class="sourceLineNo">464</span>    }<a name="line.464"></a>
-<span class="sourceLineNo">465</span><a name="line.465"></a>
-<span class="sourceLineNo">466</span>    /**<a name="line.466"></a>
-<span class="sourceLineNo">467</span>     * Create a {@link MsrpResponse} corresponding to the given request with the given error code and comment.<a name="line.467"></a>
-<span class="sourceLineNo">468</span>     */<a name="line.468"></a>
-<span class="sourceLineNo">469</span>    static MsrpResponse createMsrpResponse(MsrpRequest request, int code, String comment) {<a name="line.469"></a>
-<span class="sourceLineNo">470</span><a name="line.470"></a>
-<span class="sourceLineNo">471</span>        // Sanity check<a name="line.471"></a>
-<span class="sourceLineNo">472</span>        if (request == null)<a name="line.472"></a>
-<span class="sourceLineNo">473</span>            throw new IllegalArgumentException("null request");<a name="line.473"></a>
-<span class="sourceLineNo">474</span>        new Status(code, comment);<a name="line.474"></a>
-<span class="sourceLineNo">475</span><a name="line.475"></a>
-<span class="sourceLineNo">476</span>        // Build response<a name="line.476"></a>
-<span class="sourceLineNo">477</span>        final MsrpHeaders requestHeaders = request.getHeaders();<a name="line.477"></a>
-<span class="sourceLineNo">478</span>        final MsrpHeaders responseHeaders = new MsrpHeaders();<a name="line.478"></a>
-<span class="sourceLineNo">479</span>        if (MsrpConstants.METHOD_SEND.equals(request.getMethod()))<a name="line.479"></a>
-<span class="sourceLineNo">480</span>            responseHeaders.getToPath().add(requestHeaders.getFromPath().get(0));<a name="line.480"></a>
-<span class="sourceLineNo">481</span>        else<a name="line.481"></a>
-<span class="sourceLineNo">482</span>            responseHeaders.getToPath().addAll(requestHeaders.getFromPath());<a name="line.482"></a>
-<span class="sourceLineNo">483</span>        responseHeaders.getFromPath().add(requestHeaders.getToPath().get(0));<a name="line.483"></a>
-<span class="sourceLineNo">484</span>        return new MsrpResponse(request.getTransactionId(), code, comment, responseHeaders);<a name="line.484"></a>
-<span class="sourceLineNo">485</span>    }<a name="line.485"></a>
-<span class="sourceLineNo">486</span><a name="line.486"></a>
-<span class="sourceLineNo">487</span>    private void enqueueReport(List&lt;MsrpUri&gt; toPath, String messageId, Status status, ByteRange byteRange) {<a name="line.487"></a>
-<span class="sourceLineNo">488</span>        final MsrpHeaders headers = new MsrpHeaders();<a name="line.488"></a>
-<span class="sourceLineNo">489</span>        headers.getToPath().addAll(toPath);<a name="line.489"></a>
-<span class="sourceLineNo">490</span>        headers.getFromPath().add(Session.this.localURI);<a name="line.490"></a>
-<span class="sourceLineNo">491</span>        headers.setMessageId(messageId);<a name="line.491"></a>
-<span class="sourceLineNo">492</span>        headers.setStatus(status);<a name="line.492"></a>
-<span class="sourceLineNo">493</span>        if (byteRange != null)<a name="line.493"></a>
-<span class="sourceLineNo">494</span>            headers.setByteRange(byteRange);<a name="line.494"></a>
-<span class="sourceLineNo">495</span>        this.outputQueue.add(new MsrpRequest(MsrpMessage.randomId(), MsrpConstants.METHOD_REPORT, headers));<a name="line.495"></a>
-<span class="sourceLineNo">496</span>    }<a name="line.496"></a>
+<span class="sourceLineNo">461</span>        }<a name="line.461"></a>
+<span class="sourceLineNo">462</span>    }<a name="line.462"></a>
+<span class="sourceLineNo">463</span><a name="line.463"></a>
+<span class="sourceLineNo">464</span>    /**<a name="line.464"></a>
+<span class="sourceLineNo">465</span>     * Create a {@link MsrpResponse} corresponding to the given request with the given error code and comment.<a name="line.465"></a>
+<span class="sourceLineNo">466</span>     */<a name="line.466"></a>
+<span class="sourceLineNo">467</span>    static MsrpResponse createMsrpResponse(MsrpRequest request, int code, String comment) {<a name="line.467"></a>
+<span class="sourceLineNo">468</span><a name="line.468"></a>
+<span class="sourceLineNo">469</span>        // Sanity check<a name="line.469"></a>
+<span class="sourceLineNo">470</span>        if (request == null)<a name="line.470"></a>
+<span class="sourceLineNo">471</span>            throw new IllegalArgumentException("null request");<a name="line.471"></a>
+<span class="sourceLineNo">472</span>        new Status(code, comment);<a name="line.472"></a>
+<span class="sourceLineNo">473</span><a name="line.473"></a>
+<span class="sourceLineNo">474</span>        // Build response<a name="line.474"></a>
+<span class="sourceLineNo">475</span>        final MsrpHeaders requestHeaders = request.getHeaders();<a name="line.475"></a>
+<span class="sourceLineNo">476</span>        final MsrpHeaders responseHeaders = new MsrpHeaders();<a name="line.476"></a>
+<span class="sourceLineNo">477</span>        if (MsrpConstants.METHOD_SEND.equals(request.getMethod()))<a name="line.477"></a>
+<span class="sourceLineNo">478</span>            responseHeaders.getToPath().add(requestHeaders.getFromPath().get(0));<a name="line.478"></a>
+<span class="sourceLineNo">479</span>        else<a name="line.479"></a>
+<span class="sourceLineNo">480</span>            responseHeaders.getToPath().addAll(requestHeaders.getFromPath());<a name="line.480"></a>
+<span class="sourceLineNo">481</span>        responseHeaders.getFromPath().add(requestHeaders.getToPath().get(0));<a name="line.481"></a>
+<span class="sourceLineNo">482</span>        return new MsrpResponse(request.getTransactionId(), code, comment, responseHeaders);<a name="line.482"></a>
+<span class="sourceLineNo">483</span>    }<a name="line.483"></a>
+<span class="sourceLineNo">484</span><a name="line.484"></a>
+<span class="sourceLineNo">485</span>    private void enqueueReport(List&lt;MsrpUri&gt; toPath, String messageId, Status status, ByteRange byteRange) {<a name="line.485"></a>
+<span class="sourceLineNo">486</span>        final MsrpHeaders headers = new MsrpHeaders();<a name="line.486"></a>
+<span class="sourceLineNo">487</span>        headers.getToPath().addAll(toPath);<a name="line.487"></a>
+<span class="sourceLineNo">488</span>        headers.getFromPath().add(Session.this.localURI);<a name="line.488"></a>
+<span class="sourceLineNo">489</span>        headers.setMessageId(messageId);<a name="line.489"></a>
+<span class="sourceLineNo">490</span>        headers.setStatus(status);<a name="line.490"></a>
+<span class="sourceLineNo">491</span>        if (byteRange != null)<a name="line.491"></a>
+<span class="sourceLineNo">492</span>            headers.setByteRange(byteRange);<a name="line.492"></a>
+<span class="sourceLineNo">493</span>        this.outputQueue.add(new MsrpRequest(MsrpMessage.randomId(), MsrpConstants.METHOD_REPORT, headers));<a name="line.493"></a>
+<span class="sourceLineNo">494</span>    }<a name="line.494"></a>
+<span class="sourceLineNo">495</span><a name="line.495"></a>
+<span class="sourceLineNo">496</span>// Housekeeping<a name="line.496"></a>
 <span class="sourceLineNo">497</span><a name="line.497"></a>
-<span class="sourceLineNo">498</span>// Housekeeping<a name="line.498"></a>
+<span class="sourceLineNo">498</span>    void performHousekeeping() throws IOException {<a name="line.498"></a>
 <span class="sourceLineNo">499</span><a name="line.499"></a>
-<span class="sourceLineNo">500</span>    void performHousekeeping() throws IOException {<a name="line.500"></a>
-<span class="sourceLineNo">501</span><a name="line.501"></a>
-<span class="sourceLineNo">502</span>        // Create connection if we are active and none exists yet. Note: this can block doing DNS lookups XXX<a name="line.502"></a>
-<span class="sourceLineNo">503</span>        if (this.connection == null &amp;&amp; this.activeEndpoint != null)<a name="line.503"></a>
-<span class="sourceLineNo">504</span>            this.connection = this.msrp.createConnection(this.activeEndpoint);<a name="line.504"></a>
-<span class="sourceLineNo">505</span><a name="line.505"></a>
-<span class="sourceLineNo">506</span>        // If we don't have a connection for longer than the connect timeout, fail<a name="line.506"></a>
-<span class="sourceLineNo">507</span>        if (this.connection == null) {<a name="line.507"></a>
-<span class="sourceLineNo">508</span>            final long age = (System.nanoTime() - this.startTime) / 1000000L;<a name="line.508"></a>
-<span class="sourceLineNo">509</span>            if (age &gt;= this.msrp.getConnectTimeout())<a name="line.509"></a>
-<span class="sourceLineNo">510</span>                throw new IOException("session not bound after " + this.msrp.getConnectTimeout() + "ms");<a name="line.510"></a>
-<span class="sourceLineNo">511</span>        }<a name="line.511"></a>
-<span class="sourceLineNo">512</span><a name="line.512"></a>
-<span class="sourceLineNo">513</span>        // Add the next chunk of each outstanding message to the output queue in round-robin fashion<a name="line.513"></a>
-<span class="sourceLineNo">514</span>        if (this.outputQueue.isEmpty()) {<a name="line.514"></a>
-<span class="sourceLineNo">515</span>            for (OutputChunks chunks : this.outputChunks.values()) {<a name="line.515"></a>
-<span class="sourceLineNo">516</span>                if (chunks.hasNext()) {<a name="line.516"></a>
-<span class="sourceLineNo">517</span>                    final MsrpMessage request = chunks.next();<a name="line.517"></a>
-<span class="sourceLineNo">518</span>                    this.outputQueue.add(request);<a name="line.518"></a>
-<span class="sourceLineNo">519</span>                    this.outputTransactions.put(request.getTransactionId(),<a name="line.519"></a>
-<span class="sourceLineNo">520</span>                      new OutputTransaction(chunks, request.getTransactionId()));<a name="line.520"></a>
-<span class="sourceLineNo">521</span>                }<a name="line.521"></a>
-<span class="sourceLineNo">522</span>            }<a name="line.522"></a>
-<span class="sourceLineNo">523</span>        }<a name="line.523"></a>
-<span class="sourceLineNo">524</span><a name="line.524"></a>
-<span class="sourceLineNo">525</span>        // If we have a connection, move enqueued chunks from my output queue to connection's output queue<a name="line.525"></a>
-<span class="sourceLineNo">526</span>        this.flushOutputQueue();<a name="line.526"></a>
-<span class="sourceLineNo">527</span><a name="line.527"></a>
-<span class="sourceLineNo">528</span>        // Scrub output messages that are complete and either have already been reported on or have timed out waiting<a name="line.528"></a>
-<span class="sourceLineNo">529</span>        for (Iterator&lt;OutputChunks&gt; i = this.outputChunks.values().iterator(); i.hasNext(); ) {<a name="line.529"></a>
-<span class="sourceLineNo">530</span>            final OutputChunks chunks = i.next();<a name="line.530"></a>
-<span class="sourceLineNo">531</span>            if (chunks.hasNext())<a name="line.531"></a>
-<span class="sourceLineNo">532</span>                continue;<a name="line.532"></a>
-<span class="sourceLineNo">533</span>            if (chunks.getReportListener() == null || chunks.getIdleTime() &gt; MAX_MESSAGE_IDLE_TIME_MILLIS)<a name="line.533"></a>
-<span class="sourceLineNo">534</span>                i.remove();<a name="line.534"></a>
-<span class="sourceLineNo">535</span>        }<a name="line.535"></a>
-<span class="sourceLineNo">536</span><a name="line.536"></a>
-<span class="sourceLineNo">537</span>        // Scrub orphaned input messages<a name="line.537"></a>
-<span class="sourceLineNo">538</span>        for (Iterator&lt;InputChunks&gt; i = this.inputChunks.values().iterator(); i.hasNext(); ) {<a name="line.538"></a>
-<span class="sourceLineNo">539</span>            final InputChunks chunks = i.next();<a name="line.539"></a>
-<span class="sourceLineNo">540</span>            assert !chunks.isComplete() &amp;&amp; !chunks.isAborted();<a name="line.540"></a>
-<span class="sourceLineNo">541</span>            if (chunks.getIdleTime() &gt; MAX_MESSAGE_IDLE_TIME_MILLIS) {<a name="line.541"></a>
-<span class="sourceLineNo">542</span>                if (!FailureReport.NO.equals(chunks.getFailureReport())) {<a name="line.542"></a>
-<span class="sourceLineNo">543</span>                    this.enqueueReport(chunks.getFromPath(), chunks.getMessageId(),<a name="line.543"></a>
-<span class="sourceLineNo">544</span>                      new Status(MsrpConstants.RESPONSE_CODE_TIMEOUT, "Missing message chunks never arrived"), null);<a name="line.544"></a>
-<span class="sourceLineNo">545</span>                }<a name="line.545"></a>
-<span class="sourceLineNo">546</span>                i.remove();<a name="line.546"></a>
-<span class="sourceLineNo">547</span>                continue;<a name="line.547"></a>
-<span class="sourceLineNo">548</span>            }<a name="line.548"></a>
-<span class="sourceLineNo">549</span>        }<a name="line.549"></a>
-<span class="sourceLineNo">550</span><a name="line.550"></a>
-<span class="sourceLineNo">551</span>        // Scrub transactions that have timed out waiting for transaction responses<a name="line.551"></a>
-<span class="sourceLineNo">552</span>        for (Iterator&lt;OutputTransaction&gt; i = this.outputTransactions.values().iterator(); i.hasNext(); ) {<a name="line.552"></a>
-<span class="sourceLineNo">553</span>            final OutputTransaction outputTransaction = i.next();<a name="line.553"></a>
-<span class="sourceLineNo">554</span>            if (outputTransaction.getAge() &gt;= MAX_TRANSACTION_AGE_MILLIS) {<a name="line.554"></a>
-<span class="sourceLineNo">555</span>                outputTransaction.getOutputChunks().notifyFailure(this, this.callbackExecutor,<a name="line.555"></a>
-<span class="sourceLineNo">556</span>                  new Status(MsrpConstants.RESPONSE_CODE_TIMEOUT, "No response rec'd for transaction"));<a name="line.556"></a>
-<span class="sourceLineNo">557</span>                i.remove();<a name="line.557"></a>
-<span class="sourceLineNo">558</span>            }<a name="line.558"></a>
-<span class="sourceLineNo">559</span>        }<a name="line.559"></a>
-<span class="sourceLineNo">560</span>    }<a name="line.560"></a>
-<span class="sourceLineNo">561</span><a name="line.561"></a>
-<span class="sourceLineNo">562</span>    // If we have a connection, move enqueued chunks from my output queue to connection's output queue<a name="line.562"></a>
-<span class="sourceLineNo">563</span>    private void flushOutputQueue() throws IOException {<a name="line.563"></a>
-<span class="sourceLineNo">564</span>        if (this.connection != null) {<a name="line.564"></a>
-<span class="sourceLineNo">565</span>            for (MsrpMessage message; (message = this.outputQueue.pollFirst()) != null; )<a name="line.565"></a>
-<span class="sourceLineNo">566</span>                this.connection.write(message);<a name="line.566"></a>
-<span class="sourceLineNo">567</span>        }<a name="line.567"></a>
-<span class="sourceLineNo">568</span>    }<a name="line.568"></a>
+<span class="sourceLineNo">500</span>        // Create connection if we are active and none exists yet. Note: this can block doing DNS lookups XXX<a name="line.500"></a>
+<span class="sourceLineNo">501</span>        if (this.connection == null &amp;&amp; this.activeEndpoint != null)<a name="line.501"></a>
+<span class="sourceLineNo">502</span>            this.connection = this.msrp.createConnection(this.activeEndpoint);<a name="line.502"></a>
+<span class="sourceLineNo">503</span><a name="line.503"></a>
+<span class="sourceLineNo">504</span>        // If we don't have a connection for longer than the connect timeout, fail<a name="line.504"></a>
+<span class="sourceLineNo">505</span>        if (this.connection == null) {<a name="line.505"></a>
+<span class="sourceLineNo">506</span>            final long age = (System.nanoTime() - this.startTime) / 1000000L;<a name="line.506"></a>
+<span class="sourceLineNo">507</span>            if (age &gt;= this.msrp.getConnectTimeout())<a name="line.507"></a>
+<span class="sourceLineNo">508</span>                throw new IOException("session not bound after " + this.msrp.getConnectTimeout() + "ms");<a name="line.508"></a>
+<span class="sourceLineNo">509</span>        }<a name="line.509"></a>
+<span class="sourceLineNo">510</span><a name="line.510"></a>
+<span class="sourceLineNo">511</span>        // Add the next chunk of each outstanding message to the output queue in round-robin fashion<a name="line.511"></a>
+<span class="sourceLineNo">512</span>        if (this.outputQueue.isEmpty()) {<a name="line.512"></a>
+<span class="sourceLineNo">513</span>            for (OutputChunks chunks : this.outputChunks.values()) {<a name="line.513"></a>
+<span class="sourceLineNo">514</span>                if (chunks.hasNext()) {<a name="line.514"></a>
+<span class="sourceLineNo">515</span>                    final MsrpMessage request = chunks.next();<a name="line.515"></a>
+<span class="sourceLineNo">516</span>                    this.outputQueue.add(request);<a name="line.516"></a>
+<span class="sourceLineNo">517</span>                    this.outputTransactions.put(request.getTransactionId(),<a name="line.517"></a>
+<span class="sourceLineNo">518</span>                      new OutputTransaction(chunks, request.getTransactionId()));<a name="line.518"></a>
+<span class="sourceLineNo">519</span>                }<a name="line.519"></a>
+<span class="sourceLineNo">520</span>            }<a name="line.520"></a>
+<span class="sourceLineNo">521</span>        }<a name="line.521"></a>
+<span class="sourceLineNo">522</span><a name="line.522"></a>
+<span class="sourceLineNo">523</span>        // If we have a connection, move enqueued chunks from my output queue to connection's output queue<a name="line.523"></a>
+<span class="sourceLineNo">524</span>        this.flushOutputQueue();<a name="line.524"></a>
+<span class="sourceLineNo">525</span><a name="line.525"></a>
+<span class="sourceLineNo">526</span>        // Scrub output messages that are complete and either have already been reported on or have timed out waiting<a name="line.526"></a>
+<span class="sourceLineNo">527</span>        for (Iterator&lt;OutputChunks&gt; i = this.outputChunks.values().iterator(); i.hasNext(); ) {<a name="line.527"></a>
+<span class="sourceLineNo">528</span>            final OutputChunks chunks = i.next();<a name="line.528"></a>
+<span class="sourceLineNo">529</span>            if (chunks.hasNext())<a name="line.529"></a>
+<span class="sourceLineNo">530</span>                continue;<a name="line.530"></a>
+<span class="sourceLineNo">531</span>            if (chunks.getReportListener() == null || chunks.getIdleTime() &gt; MAX_MESSAGE_IDLE_TIME_MILLIS)<a name="line.531"></a>
+<span class="sourceLineNo">532</span>                i.remove();<a name="line.532"></a>
+<span class="sourceLineNo">533</span>        }<a name="line.533"></a>
+<span class="sourceLineNo">534</span><a name="line.534"></a>
+<span class="sourceLineNo">535</span>        // Scrub orphaned input messages<a name="line.535"></a>
+<span class="sourceLineNo">536</span>        for (Iterator&lt;InputChunks&gt; i = this.inputChunks.values().iterator(); i.hasNext(); ) {<a name="line.536"></a>
+<span class="sourceLineNo">537</span>            final InputChunks chunks = i.next();<a name="line.537"></a>
+<span class="sourceLineNo">538</span>            assert !chunks.isComplete() &amp;&amp; !chunks.isAborted();<a name="line.538"></a>
+<span class="sourceLineNo">539</span>            if (chunks.getIdleTime() &gt; MAX_MESSAGE_IDLE_TIME_MILLIS) {<a name="line.539"></a>
+<span class="sourceLineNo">540</span>                if (!FailureReport.NO.equals(chunks.getFailureReport())) {<a name="line.540"></a>
+<span class="sourceLineNo">541</span>                    this.enqueueReport(chunks.getFromPath(), chunks.getMessageId(),<a name="line.541"></a>
+<span class="sourceLineNo">542</span>                      new Status(MsrpConstants.RESPONSE_CODE_TIMEOUT, "Missing message chunks never arrived"), null);<a name="line.542"></a>
+<span class="sourceLineNo">543</span>                }<a name="line.543"></a>
+<span class="sourceLineNo">544</span>                i.remove();<a name="line.544"></a>
+<span class="sourceLineNo">545</span>                continue;<a name="line.545"></a>
+<span class="sourceLineNo">546</span>            }<a name="line.546"></a>
+<span class="sourceLineNo">547</span>        }<a name="line.547"></a>
+<span class="sourceLineNo">548</span><a name="line.548"></a>
+<span class="sourceLineNo">549</span>        // Scrub transactions that have timed out waiting for transaction responses<a name="line.549"></a>
+<span class="sourceLineNo">550</span>        for (Iterator&lt;OutputTransaction&gt; i = this.outputTransactions.values().iterator(); i.hasNext(); ) {<a name="line.550"></a>
+<span class="sourceLineNo">551</span>            final OutputTransaction outputTransaction = i.next();<a name="line.551"></a>
+<span class="sourceLineNo">552</span>            if (outputTransaction.getAge() &gt;= MAX_TRANSACTION_AGE_MILLIS) {<a name="line.552"></a>
+<span class="sourceLineNo">553</span>                outputTransaction.getOutputChunks().notifyFailure(this, this.callbackExecutor,<a name="line.553"></a>
+<span class="sourceLineNo">554</span>                  new Status(MsrpConstants.RESPONSE_CODE_TIMEOUT, "No response rec'd for transaction"));<a name="line.554"></a>
+<span class="sourceLineNo">555</span>                i.remove();<a name="line.555"></a>
+<span class="sourceLineNo">556</span>            }<a name="line.556"></a>
+<span class="sourceLineNo">557</span>        }<a name="line.557"></a>
+<span class="sourceLineNo">558</span>    }<a name="line.558"></a>
+<span class="sourceLineNo">559</span><a name="line.559"></a>
+<span class="sourceLineNo">560</span>    // If we have a connection, move enqueued chunks from my output queue to connection's output queue<a name="line.560"></a>
+<span class="sourceLineNo">561</span>    private void flushOutputQueue() throws IOException {<a name="line.561"></a>
+<span class="sourceLineNo">562</span>        if (this.connection != null) {<a name="line.562"></a>
+<span class="sourceLineNo">563</span>            for (MsrpMessage message; (message = this.outputQueue.pollFirst()) != null; )<a name="line.563"></a>
+<span class="sourceLineNo">564</span>                this.connection.write(message);<a name="line.564"></a>
+<span class="sourceLineNo">565</span>        }<a name="line.565"></a>
+<span class="sourceLineNo">566</span>    }<a name="line.566"></a>
+<span class="sourceLineNo">567</span><a name="line.567"></a>
+<span class="sourceLineNo">568</span>// OutputTransaction<a name="line.568"></a>
 <span class="sourceLineNo">569</span><a name="line.569"></a>
-<span class="sourceLineNo">570</span>// OutputTransaction<a name="line.570"></a>
-<span class="sourceLineNo">571</span><a name="line.571"></a>
-<span class="sourceLineNo">572</span>    /**<a name="line.572"></a>
-<span class="sourceLineNo">573</span>     * This object is needed so that when a failure report is requested we can keep track of who to notify.<a name="line.573"></a>
-<span class="sourceLineNo">574</span>     */<a name="line.574"></a>
-<span class="sourceLineNo">575</span>    private class OutputTransaction {<a name="line.575"></a>
-<span class="sourceLineNo">576</span><a name="line.576"></a>
-<span class="sourceLineNo">577</span>        private final OutputChunks chunks;<a name="line.577"></a>
-<span class="sourceLineNo">578</span>        private final String transactionId;<a name="line.578"></a>
-<span class="sourceLineNo">579</span>        private final long sendTime;<a name="line.579"></a>
-<span class="sourceLineNo">580</span><a name="line.580"></a>
-<span class="sourceLineNo">581</span>        OutputTransaction(OutputChunks chunks, String transactionId) {<a name="line.581"></a>
-<span class="sourceLineNo">582</span>            this.chunks = chunks;<a name="line.582"></a>
-<span class="sourceLineNo">583</span>            this.transactionId = transactionId;<a name="line.583"></a>
-<span class="sourceLineNo">584</span>            this.sendTime = System.nanoTime();<a name="line.584"></a>
-<span class="sourceLineNo">585</span>        }<a name="line.585"></a>
-<span class="sourceLineNo">586</span><a name="line.586"></a>
-<span class="sourceLineNo">587</span>        public OutputChunks getOutputChunks() {<a name="line.587"></a>
-<span class="sourceLineNo">588</span>            return this.chunks;<a name="line.588"></a>
-<span class="sourceLineNo">589</span>        }<a name="line.589"></a>
-<span class="sourceLineNo">590</span><a name="line.590"></a>
-<span class="sourceLineNo">591</span>        public String getTransactionId() {<a name="line.591"></a>
-<span class="sourceLineNo">592</span>            return this.transactionId;<a name="line.592"></a>
-<span class="sourceLineNo">593</span>        }<a name="line.593"></a>
-<span class="sourceLineNo">594</span><a name="line.594"></a>
-<span class="sourceLineNo">595</span>        public long getAge() {<a name="line.595"></a>
-<span class="sourceLineNo">596</span>            return (System.nanoTime() - this.sendTime) / 1000000L;<a name="line.596"></a>
-<span class="sourceLineNo">597</span>        }<a name="line.597"></a>
-<span class="sourceLineNo">598</span>    }<a name="line.598"></a>
-<span class="sourceLineNo">599</span>}<a name="line.599"></a>
-<span class="sourceLineNo">600</span><a name="line.600"></a>
+<span class="sourceLineNo">570</span>    /**<a name="line.570"></a>
+<span class="sourceLineNo">571</span>     * This object is needed so that when a failure report is requested we can keep track of who to notify.<a name="line.571"></a>
+<span class="sourceLineNo">572</span>     */<a name="line.572"></a>
+<span class="sourceLineNo">573</span>    private class OutputTransaction {<a name="line.573"></a>
+<span class="sourceLineNo">574</span><a name="line.574"></a>
+<span class="sourceLineNo">575</span>        private final OutputChunks chunks;<a name="line.575"></a>
+<span class="sourceLineNo">576</span>        private final String transactionId;<a name="line.576"></a>
+<span class="sourceLineNo">577</span>        private final long sendTime;<a name="line.577"></a>
+<span class="sourceLineNo">578</span><a name="line.578"></a>
+<span class="sourceLineNo">579</span>        OutputTransaction(OutputChunks chunks, String transactionId) {<a name="line.579"></a>
+<span class="sourceLineNo">580</span>            this.chunks = chunks;<a name="line.580"></a>
+<span class="sourceLineNo">581</span>            this.transactionId = transactionId;<a name="line.581"></a>
+<span class="sourceLineNo">582</span>            this.sendTime = System.nanoTime();<a name="line.582"></a>
+<span class="sourceLineNo">583</span>        }<a name="line.583"></a>
+<span class="sourceLineNo">584</span><a name="line.584"></a>
+<span class="sourceLineNo">585</span>        public OutputChunks getOutputChunks() {<a name="line.585"></a>
+<span class="sourceLineNo">586</span>            return this.chunks;<a name="line.586"></a>
+<span class="sourceLineNo">587</span>        }<a name="line.587"></a>
+<span class="sourceLineNo">588</span><a name="line.588"></a>
+<span class="sourceLineNo">589</span>        public String getTransactionId() {<a name="line.589"></a>
+<span class="sourceLineNo">590</span>            return this.transactionId;<a name="line.590"></a>
+<span class="sourceLineNo">591</span>        }<a name="line.591"></a>
+<span class="sourceLineNo">592</span><a name="line.592"></a>
+<span class="sourceLineNo">593</span>        public long getAge() {<a name="line.593"></a>
+<span class="sourceLineNo">594</span>            return (System.nanoTime() - this.sendTime) / 1000000L;<a name="line.594"></a>
+<span class="sourceLineNo">595</span>        }<a name="line.595"></a>
+<span class="sourceLineNo">596</span>    }<a name="line.596"></a>
+<span class="sourceLineNo">597</span>}<a name="line.597"></a>
+<span class="sourceLineNo">598</span><a name="line.598"></a>
 
 
 

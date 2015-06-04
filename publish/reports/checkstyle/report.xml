@@ -1,122 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <checkstyle version="5.7">
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/Connection.java">
-<error line="88" column="60" severity="info" message="&apos;1000000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/Connection.java">
+<error line="86" column="60" severity="info" message="&apos;1000000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/Endpoint.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/Endpoint.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/FailureListener.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/FailureListener.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/InputChunks.java">
-<error line="68" column="5" severity="info" message="Executable statement count is 41 (max allowed is 30)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ExecutableStatementCountCheck"/>
-<error line="144" severity="info" message="Comment matches to-do format &apos;(XXX|TODO|FIXME)&apos;." source="com.puppycrawl.tools.checkstyle.checks.TodoCommentCheck"/>
-<error line="151" severity="info" message="Comment matches to-do format &apos;(XXX|TODO|FIXME)&apos;." source="com.puppycrawl.tools.checkstyle.checks.TodoCommentCheck"/>
-<error line="191" column="55" severity="info" message="&apos;1000000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/InputChunks.java">
+<error line="66" column="5" severity="info" message="Executable statement count is 41 (max allowed is 30)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ExecutableStatementCountCheck"/>
+<error line="142" severity="info" message="Comment matches to-do format &apos;(XXX|TODO|FIXME)&apos;." source="com.puppycrawl.tools.checkstyle.checks.TodoCommentCheck"/>
+<error line="149" severity="info" message="Comment matches to-do format &apos;(XXX|TODO|FIXME)&apos;." source="com.puppycrawl.tools.checkstyle.checks.TodoCommentCheck"/>
+<error line="189" column="55" severity="info" message="&apos;1000000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/Main.java">
-<error line="75" column="5" severity="info" message="Executable statement count is 105 (max allowed is 30)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ExecutableStatementCountCheck"/>
-<error line="75" column="5" severity="info" message="Method length is 219 lines (max allowed is 150)." source="com.puppycrawl.tools.checkstyle.checks.sizes.MethodLengthCheck"/>
-<error line="94" column="87" severity="info" message="&apos;1000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="96" column="93" severity="info" message="&apos;1000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="228" column="36" severity="info" message="&apos;400&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="342" column="45" severity="info" message="&apos;10&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="424" column="21" severity="info" message="More than 7 parameters (found 8)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ParameterNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/Main.java">
+<error line="73" column="5" severity="info" message="Executable statement count is 105 (max allowed is 30)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ExecutableStatementCountCheck"/>
+<error line="73" column="5" severity="info" message="Method length is 219 lines (max allowed is 150)." source="com.puppycrawl.tools.checkstyle.checks.sizes.MethodLengthCheck"/>
+<error line="92" column="87" severity="info" message="&apos;1000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="94" column="93" severity="info" message="&apos;1000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="226" column="36" severity="info" message="&apos;400&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="340" column="45" severity="info" message="&apos;10&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="422" column="21" severity="info" message="More than 7 parameters (found 8)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ParameterNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/Msrp.java">
-<error line="367" severity="info" message="Comment matches to-do format &apos;(XXX|TODO|FIXME)&apos;." source="com.puppycrawl.tools.checkstyle.checks.TodoCommentCheck"/>
-<error line="505" column="5" severity="info" message="Executable statement count is 36 (max allowed is 30)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ExecutableStatementCountCheck"/>
-<error line="520" column="40" severity="info" message="&apos;1000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/Msrp.java">
+<error line="365" severity="info" message="Comment matches to-do format &apos;(XXX|TODO|FIXME)&apos;." source="com.puppycrawl.tools.checkstyle.checks.TodoCommentCheck"/>
+<error line="504" column="5" severity="info" message="Executable statement count is 36 (max allowed is 30)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ExecutableStatementCountCheck"/>
+<error line="519" column="40" severity="info" message="&apos;1000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/MsrpConstants.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/MsrpConstants.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/MsrpUri.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/MsrpUri.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/MsrpUriComparator.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/MsrpUriComparator.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/OutputChunks.java">
-<error line="130" column="55" severity="info" message="&apos;1000000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="213" column="5" severity="info" message="Executable statement count is 41 (max allowed is 30)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ExecutableStatementCountCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/OutputChunks.java">
+<error line="128" column="55" severity="info" message="&apos;1000000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="211" column="5" severity="info" message="Executable statement count is 41 (max allowed is 30)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ExecutableStatementCountCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/ReportListener.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/ReportListener.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/SelectorService.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/SelectorService.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/Session.java">
-<error line="417" column="82" severity="info" message="&apos;100&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="446" column="34" severity="info" message="&apos;300&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="502" severity="info" message="Comment matches to-do format &apos;(XXX|TODO|FIXME)&apos;." source="com.puppycrawl.tools.checkstyle.checks.TodoCommentCheck"/>
-<error line="508" column="69" severity="info" message="&apos;1000000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="596" column="58" severity="info" message="&apos;1000000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/Session.java">
+<error line="415" column="82" severity="info" message="&apos;100&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="444" column="34" severity="info" message="&apos;300&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="500" severity="info" message="Comment matches to-do format &apos;(XXX|TODO|FIXME)&apos;." source="com.puppycrawl.tools.checkstyle.checks.TodoCommentCheck"/>
+<error line="506" column="69" severity="info" message="&apos;1000000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="594" column="58" severity="info" message="&apos;1000000L&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/SessionListener.java">
-<error line="47" column="10" severity="info" message="More than 7 parameters (found 8)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ParameterNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/SessionListener.java">
+<error line="45" column="10" severity="info" message="More than 7 parameters (found 8)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ParameterNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/SuccessListener.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/SuccessListener.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/BoundaryInputParser.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/BoundaryInputParser.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/BoundaryInputStream.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/BoundaryInputStream.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/ByteRange.java">
-<error line="117" column="91" severity="info" message="&apos;3&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="117" column="95" severity="info" message="&apos;10&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="118" column="47" severity="info" message="&apos;4&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="118" column="93" severity="info" message="&apos;5&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="118" column="97" severity="info" message="&apos;10&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="144" column="37" severity="info" message="&apos;22&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="144" column="56" severity="info" message="&apos;11&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/ByteRange.java">
+<error line="115" column="91" severity="info" message="&apos;3&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="115" column="95" severity="info" message="&apos;10&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="116" column="47" severity="info" message="&apos;4&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="116" column="93" severity="info" message="&apos;5&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="116" column="97" severity="info" message="&apos;10&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="142" column="37" severity="info" message="&apos;22&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="142" column="56" severity="info" message="&apos;11&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/FailureReport.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/FailureReport.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/Header.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/Header.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/LineInputParser.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/LineInputParser.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/MsrpHeaders.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/MsrpHeaders.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/MsrpInputParser.java">
-<error line="168" column="98" severity="info" message="&apos;10&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="168" column="117" severity="info" message="&apos;4&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="180" column="5" severity="info" message="Executable statement count is 33 (max allowed is 30)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ExecutableStatementCountCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/MsrpInputParser.java">
+<error line="166" column="98" severity="info" message="&apos;10&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="166" column="117" severity="info" message="&apos;4&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="178" column="5" severity="info" message="Executable statement count is 33 (max allowed is 30)." source="com.puppycrawl.tools.checkstyle.checks.sizes.ExecutableStatementCountCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/MsrpInputStream.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/MsrpInputStream.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/MsrpMessage.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/MsrpMessage.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/MsrpRequest.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/MsrpRequest.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/MsrpResponse.java">
-<error line="48" column="32" severity="info" message="&apos;999&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/MsrpResponse.java">
+<error line="46" column="32" severity="info" message="&apos;999&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/ProtocolException.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/ProtocolException.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/Status.java">
-<error line="56" column="42" severity="info" message="&apos;999&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="58" column="32" severity="info" message="&apos;999&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="103" column="62" severity="info" message="&apos;4&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="130" column="35" severity="info" message="&apos;16&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="130" column="55" severity="info" message="&apos;8&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/Status.java">
+<error line="54" column="42" severity="info" message="&apos;999&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="56" column="32" severity="info" message="&apos;999&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="101" column="62" severity="info" message="&apos;4&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="128" column="35" severity="info" message="&apos;16&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="128" column="55" severity="info" message="&apos;8&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/Util.java">
-<error line="31" column="108" severity="info" message="&apos;3&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/Util.java">
+<error line="29" column="108" severity="info" message="&apos;3&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/msg/package-info.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/msg/package-info.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/java/org/dellroad/msrp/package-info.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/java/org/dellroad/msrp/package-info.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/test/org/dellroad/msrp/TestSupport.java">
-<error line="84" column="41" severity="info" message="&apos;1024&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/test/org/dellroad/msrp/TestSupport.java">
+<error line="82" column="41" severity="info" message="&apos;1024&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/test/org/dellroad/msrp/msg/BoundaryInputStreamTest.java">
-<error line="57" column="37" severity="info" message="&apos;1024&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="66" column="57" severity="info" message="&apos;0x01d8&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/test/org/dellroad/msrp/msg/BoundaryInputStreamTest.java">
+<error line="55" column="37" severity="info" message="&apos;1024&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="64" column="57" severity="info" message="&apos;0x01d8&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
+<error line="68" column="57" severity="info" message="&apos;0x0030&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 <error line="70" column="57" severity="info" message="&apos;0x0030&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
-<error line="72" column="57" severity="info" message="&apos;0x0030&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/test/org/dellroad/msrp/msg/MsrpMessageParseTest.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/test/org/dellroad/msrp/msg/MsrpMessageParseTest.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/test/org/dellroad/msrp/msg/package-info.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/test/org/dellroad/msrp/msg/package-info.java">
 </file>
-<file name="/Users/archie/proj/msrp4j/trunk/src/test/org/dellroad/msrp/package-info.java">
+<file name="/Users/archie/proj/msrp4j/msrp4j/src/test/org/dellroad/msrp/package-info.java">
 </file>
 </checkstyle>

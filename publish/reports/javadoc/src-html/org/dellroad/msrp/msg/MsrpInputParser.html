@@ -9,400 +9,398 @@
 <pre><span class="sourceLineNo">001</span><a name="line.1"></a>
 <span class="sourceLineNo">002</span>/*<a name="line.2"></a>
 <span class="sourceLineNo">003</span> * Copyright (C) 2014 Archie L. Cobbs. All rights reserved.<a name="line.3"></a>
-<span class="sourceLineNo">004</span> *<a name="line.4"></a>
-<span class="sourceLineNo">005</span> * $Id$<a name="line.5"></a>
-<span class="sourceLineNo">006</span> */<a name="line.6"></a>
+<span class="sourceLineNo">004</span> */<a name="line.4"></a>
+<span class="sourceLineNo">005</span><a name="line.5"></a>
+<span class="sourceLineNo">006</span>package org.dellroad.msrp.msg;<a name="line.6"></a>
 <span class="sourceLineNo">007</span><a name="line.7"></a>
-<span class="sourceLineNo">008</span>package org.dellroad.msrp.msg;<a name="line.8"></a>
-<span class="sourceLineNo">009</span><a name="line.9"></a>
-<span class="sourceLineNo">010</span>import java.io.ByteArrayOutputStream;<a name="line.10"></a>
-<span class="sourceLineNo">011</span>import java.net.URISyntaxException;<a name="line.11"></a>
-<span class="sourceLineNo">012</span>import java.util.List;<a name="line.12"></a>
-<span class="sourceLineNo">013</span>import java.util.regex.Matcher;<a name="line.13"></a>
-<span class="sourceLineNo">014</span>import java.util.regex.Pattern;<a name="line.14"></a>
-<span class="sourceLineNo">015</span><a name="line.15"></a>
-<span class="sourceLineNo">016</span>import org.dellroad.msrp.MsrpConstants;<a name="line.16"></a>
-<span class="sourceLineNo">017</span>import org.dellroad.msrp.MsrpUri;<a name="line.17"></a>
-<span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span>/**<a name="line.19"></a>
-<span class="sourceLineNo">020</span> * Stateful MSRP message parser.<a name="line.20"></a>
-<span class="sourceLineNo">021</span> *<a name="line.21"></a>
-<span class="sourceLineNo">022</span> * &lt;p&gt;<a name="line.22"></a>
-<span class="sourceLineNo">023</span> * Instances are configured with various size limits to avoid unbounded memory usage.<a name="line.23"></a>
-<span class="sourceLineNo">024</span> * &lt;/p&gt;<a name="line.24"></a>
-<span class="sourceLineNo">025</span> */<a name="line.25"></a>
-<span class="sourceLineNo">026</span>public class MsrpInputParser {<a name="line.26"></a>
-<span class="sourceLineNo">027</span><a name="line.27"></a>
-<span class="sourceLineNo">028</span>    /** Default maximum line length in bytes ({@value #DEFAULT_MAX_LINE_LENGTH}) */<a name="line.28"></a>
-<span class="sourceLineNo">029</span>    public static final int DEFAULT_MAX_LINE_LENGTH = 16384;               // 16K<a name="line.29"></a>
-<span class="sourceLineNo">030</span><a name="line.30"></a>
-<span class="sourceLineNo">031</span>    /** Default maximum content length ({@value #DEFAULT_MAX_CONTENT_LENGTH}) */<a name="line.31"></a>
-<span class="sourceLineNo">032</span>    public static final int DEFAULT_MAX_CONTENT_LENGTH = 16 * 1024 * 1024;  // 16M<a name="line.32"></a>
-<span class="sourceLineNo">033</span><a name="line.33"></a>
-<span class="sourceLineNo">034</span>    /** Default maximum number of URIs in {@code To-Path} or {@code From-Path} ({@value #DEFAULT_MAX_PATH_URIS}) */<a name="line.34"></a>
-<span class="sourceLineNo">035</span>    public static final int DEFAULT_MAX_PATH_URIS = 32;<a name="line.35"></a>
-<span class="sourceLineNo">036</span><a name="line.36"></a>
-<span class="sourceLineNo">037</span>    /** Default maximum number of MIME headers length ({@value #DEFAULT_MAX_MIME_HEADERS}) */<a name="line.37"></a>
-<span class="sourceLineNo">038</span>    public static final int DEFAULT_MAX_MIME_HEADERS = 16;<a name="line.38"></a>
-<span class="sourceLineNo">039</span><a name="line.39"></a>
-<span class="sourceLineNo">040</span>    /** Default maximum number of extension headers ({@value #DEFAULT_MAX_EXTENSION_HEADERS}) */<a name="line.40"></a>
-<span class="sourceLineNo">041</span>    public static final int DEFAULT_MAX_EXTENSION_HEADERS = 32;<a name="line.41"></a>
-<span class="sourceLineNo">042</span><a name="line.42"></a>
-<span class="sourceLineNo">043</span>    private static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("MSRP ([-.+%=\\p{Alnum}]{3,31}) ([A-Z]+)");<a name="line.43"></a>
-<span class="sourceLineNo">044</span>    private static final Pattern RESPONSE_LINE_PATTERN = Pattern.compile("MSRP ([-.+%=\\p{Alnum}]{3,31}) ([0-9]{3})( (.*))?");<a name="line.44"></a>
+<span class="sourceLineNo">008</span>import java.io.ByteArrayOutputStream;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import java.net.URISyntaxException;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import java.util.List;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import java.util.regex.Matcher;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import java.util.regex.Pattern;<a name="line.12"></a>
+<span class="sourceLineNo">013</span><a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.dellroad.msrp.MsrpConstants;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.dellroad.msrp.MsrpUri;<a name="line.15"></a>
+<span class="sourceLineNo">016</span><a name="line.16"></a>
+<span class="sourceLineNo">017</span>/**<a name="line.17"></a>
+<span class="sourceLineNo">018</span> * Stateful MSRP message parser.<a name="line.18"></a>
+<span class="sourceLineNo">019</span> *<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * &lt;p&gt;<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * Instances are configured with various size limits to avoid unbounded memory usage.<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * &lt;/p&gt;<a name="line.22"></a>
+<span class="sourceLineNo">023</span> */<a name="line.23"></a>
+<span class="sourceLineNo">024</span>public class MsrpInputParser {<a name="line.24"></a>
+<span class="sourceLineNo">025</span><a name="line.25"></a>
+<span class="sourceLineNo">026</span>    /** Default maximum line length in bytes ({@value #DEFAULT_MAX_LINE_LENGTH}) */<a name="line.26"></a>
+<span class="sourceLineNo">027</span>    public static final int DEFAULT_MAX_LINE_LENGTH = 16384;               // 16K<a name="line.27"></a>
+<span class="sourceLineNo">028</span><a name="line.28"></a>
+<span class="sourceLineNo">029</span>    /** Default maximum content length ({@value #DEFAULT_MAX_CONTENT_LENGTH}) */<a name="line.29"></a>
+<span class="sourceLineNo">030</span>    public static final int DEFAULT_MAX_CONTENT_LENGTH = 16 * 1024 * 1024;  // 16M<a name="line.30"></a>
+<span class="sourceLineNo">031</span><a name="line.31"></a>
+<span class="sourceLineNo">032</span>    /** Default maximum number of URIs in {@code To-Path} or {@code From-Path} ({@value #DEFAULT_MAX_PATH_URIS}) */<a name="line.32"></a>
+<span class="sourceLineNo">033</span>    public static final int DEFAULT_MAX_PATH_URIS = 32;<a name="line.33"></a>
+<span class="sourceLineNo">034</span><a name="line.34"></a>
+<span class="sourceLineNo">035</span>    /** Default maximum number of MIME headers length ({@value #DEFAULT_MAX_MIME_HEADERS}) */<a name="line.35"></a>
+<span class="sourceLineNo">036</span>    public static final int DEFAULT_MAX_MIME_HEADERS = 16;<a name="line.36"></a>
+<span class="sourceLineNo">037</span><a name="line.37"></a>
+<span class="sourceLineNo">038</span>    /** Default maximum number of extension headers ({@value #DEFAULT_MAX_EXTENSION_HEADERS}) */<a name="line.38"></a>
+<span class="sourceLineNo">039</span>    public static final int DEFAULT_MAX_EXTENSION_HEADERS = 32;<a name="line.39"></a>
+<span class="sourceLineNo">040</span><a name="line.40"></a>
+<span class="sourceLineNo">041</span>    private static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("MSRP ([-.+%=\\p{Alnum}]{3,31}) ([A-Z]+)");<a name="line.41"></a>
+<span class="sourceLineNo">042</span>    private static final Pattern RESPONSE_LINE_PATTERN = Pattern.compile("MSRP ([-.+%=\\p{Alnum}]{3,31}) ([0-9]{3})( (.*))?");<a name="line.42"></a>
+<span class="sourceLineNo">043</span><a name="line.43"></a>
+<span class="sourceLineNo">044</span>    private static final Header HEADER_EOF = new Header("dummy", "dummy");<a name="line.44"></a>
 <span class="sourceLineNo">045</span><a name="line.45"></a>
-<span class="sourceLineNo">046</span>    private static final Header HEADER_EOF = new Header("dummy", "dummy");<a name="line.46"></a>
-<span class="sourceLineNo">047</span><a name="line.47"></a>
-<span class="sourceLineNo">048</span>    private final LineInputParser lineParser;<a name="line.48"></a>
-<span class="sourceLineNo">049</span>    private final int maxBodySize;<a name="line.49"></a>
-<span class="sourceLineNo">050</span>    private final int maxPathUris;<a name="line.50"></a>
-<span class="sourceLineNo">051</span>    private final int maxMimeHeaders;<a name="line.51"></a>
-<span class="sourceLineNo">052</span>    private final int maxExtensionHeaders;<a name="line.52"></a>
-<span class="sourceLineNo">053</span><a name="line.53"></a>
-<span class="sourceLineNo">054</span>    private State state = State.FIRST_LINE;     // parse state<a name="line.54"></a>
-<span class="sourceLineNo">055</span>    private MsrpMessage message;                // the message we are building<a name="line.55"></a>
-<span class="sourceLineNo">056</span>    private String endLine;<a name="line.56"></a>
-<span class="sourceLineNo">057</span>    private boolean allowBody;<a name="line.57"></a>
-<span class="sourceLineNo">058</span>    private ByteArrayOutputStream body;<a name="line.58"></a>
-<span class="sourceLineNo">059</span>    private BoundaryInputParser boundaryInputParser;<a name="line.59"></a>
-<span class="sourceLineNo">060</span><a name="line.60"></a>
-<span class="sourceLineNo">061</span>    /**<a name="line.61"></a>
-<span class="sourceLineNo">062</span>     * Constructor. Uses default size limits.<a name="line.62"></a>
-<span class="sourceLineNo">063</span>     */<a name="line.63"></a>
-<span class="sourceLineNo">064</span>    public MsrpInputParser() {<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        this(DEFAULT_MAX_LINE_LENGTH, DEFAULT_MAX_CONTENT_LENGTH,<a name="line.65"></a>
-<span class="sourceLineNo">066</span>          DEFAULT_MAX_PATH_URIS, DEFAULT_MAX_MIME_HEADERS, DEFAULT_MAX_EXTENSION_HEADERS);<a name="line.66"></a>
-<span class="sourceLineNo">067</span>    }<a name="line.67"></a>
-<span class="sourceLineNo">068</span><a name="line.68"></a>
-<span class="sourceLineNo">069</span>    /**<a name="line.69"></a>
-<span class="sourceLineNo">070</span>     * Primary constructor.<a name="line.70"></a>
-<span class="sourceLineNo">071</span>     *<a name="line.71"></a>
-<span class="sourceLineNo">072</span>     * @param maxLineLength maximum allowed header line length in bytes<a name="line.72"></a>
-<span class="sourceLineNo">073</span>     * @param maxBodySize maximum allowed body size in bytes<a name="line.73"></a>
-<span class="sourceLineNo">074</span>     * @param maxPathUris maximum number of URI's allowed in {@code To-Path} or {@code From-Path} header<a name="line.74"></a>
-<span class="sourceLineNo">075</span>     * @param maxMimeHeaders maximum number of allowed MIME headers<a name="line.75"></a>
-<span class="sourceLineNo">076</span>     * @param maxExtensionHeaders maximum number of allowed extension headers<a name="line.76"></a>
-<span class="sourceLineNo">077</span>     * @throws IllegalArgumentException if {@code input} is null<a name="line.77"></a>
-<span class="sourceLineNo">078</span>     */<a name="line.78"></a>
-<span class="sourceLineNo">079</span>    public MsrpInputParser(int maxLineLength, int maxBodySize, int maxPathUris, int maxMimeHeaders, int maxExtensionHeaders) {<a name="line.79"></a>
-<span class="sourceLineNo">080</span>        this.lineParser = new LineInputParser(maxLineLength);<a name="line.80"></a>
-<span class="sourceLineNo">081</span>        this.maxBodySize = maxBodySize;<a name="line.81"></a>
-<span class="sourceLineNo">082</span>        this.maxPathUris = maxPathUris;<a name="line.82"></a>
-<span class="sourceLineNo">083</span>        this.maxMimeHeaders = maxMimeHeaders;<a name="line.83"></a>
-<span class="sourceLineNo">084</span>        this.maxExtensionHeaders = maxExtensionHeaders;<a name="line.84"></a>
-<span class="sourceLineNo">085</span>    }<a name="line.85"></a>
-<span class="sourceLineNo">086</span><a name="line.86"></a>
-<span class="sourceLineNo">087</span>    /**<a name="line.87"></a>
-<span class="sourceLineNo">088</span>     * Input the next byte.<a name="line.88"></a>
-<span class="sourceLineNo">089</span>     *<a name="line.89"></a>
-<span class="sourceLineNo">090</span>     * @param b input byte<a name="line.90"></a>
-<span class="sourceLineNo">091</span>     * @return next complete message, or null if more bytes are needed<a name="line.91"></a>
-<span class="sourceLineNo">092</span>     * @throws ProtocolException if a protocol violation is detected<a name="line.92"></a>
-<span class="sourceLineNo">093</span>     */<a name="line.93"></a>
-<span class="sourceLineNo">094</span>    public MsrpMessage inputMessageByte(byte b) throws ProtocolException {<a name="line.94"></a>
-<span class="sourceLineNo">095</span><a name="line.95"></a>
-<span class="sourceLineNo">096</span>        // Input byte<a name="line.96"></a>
-<span class="sourceLineNo">097</span>        boolean complete = false;<a name="line.97"></a>
-<span class="sourceLineNo">098</span>        switch (this.state) {<a name="line.98"></a>
-<span class="sourceLineNo">099</span>        case FIRST_LINE:<a name="line.99"></a>
-<span class="sourceLineNo">100</span>            this.inputFirstLineByte(b);<a name="line.100"></a>
-<span class="sourceLineNo">101</span>            break;<a name="line.101"></a>
-<span class="sourceLineNo">102</span>        case TO_PATH:<a name="line.102"></a>
-<span class="sourceLineNo">103</span>            if (this.inputPathHeaderByte(this.message.getHeaders().getToPath(), MsrpConstants.TO_PATH_HEADER, b))<a name="line.103"></a>
-<span class="sourceLineNo">104</span>                this.state = State.FROM_PATH;<a name="line.104"></a>
-<span class="sourceLineNo">105</span>            break;<a name="line.105"></a>
-<span class="sourceLineNo">106</span>        case FROM_PATH:<a name="line.106"></a>
-<span class="sourceLineNo">107</span>            if (this.inputPathHeaderByte(this.message.getHeaders().getFromPath(), MsrpConstants.FROM_PATH_HEADER, b))<a name="line.107"></a>
-<span class="sourceLineNo">108</span>                this.state = State.HEADER;<a name="line.108"></a>
-<span class="sourceLineNo">109</span>            break;<a name="line.109"></a>
-<span class="sourceLineNo">110</span>        case HEADER:<a name="line.110"></a>
-<span class="sourceLineNo">111</span>            complete = this.inputHeaderByte(b);<a name="line.111"></a>
-<span class="sourceLineNo">112</span>            break;<a name="line.112"></a>
-<span class="sourceLineNo">113</span>        case BODY_CONTENT:<a name="line.113"></a>
-<span class="sourceLineNo">114</span>            complete = this.inputBodyContentByte(b);<a name="line.114"></a>
-<span class="sourceLineNo">115</span>            break;<a name="line.115"></a>
-<span class="sourceLineNo">116</span>        default:<a name="line.116"></a>
-<span class="sourceLineNo">117</span>            throw new RuntimeException("internal error");<a name="line.117"></a>
-<span class="sourceLineNo">118</span>        }<a name="line.118"></a>
-<span class="sourceLineNo">119</span><a name="line.119"></a>
-<span class="sourceLineNo">120</span>        // Message complete?<a name="line.120"></a>
-<span class="sourceLineNo">121</span>        if (complete) {<a name="line.121"></a>
-<span class="sourceLineNo">122</span>            final MsrpMessage result = this.message;<a name="line.122"></a>
-<span class="sourceLineNo">123</span>            this.reset();<a name="line.123"></a>
-<span class="sourceLineNo">124</span>            return result;<a name="line.124"></a>
-<span class="sourceLineNo">125</span>        }<a name="line.125"></a>
-<span class="sourceLineNo">126</span>        return null;<a name="line.126"></a>
-<span class="sourceLineNo">127</span>    }<a name="line.127"></a>
-<span class="sourceLineNo">128</span><a name="line.128"></a>
-<span class="sourceLineNo">129</span>    /**<a name="line.129"></a>
-<span class="sourceLineNo">130</span>     * Reset parse state.<a name="line.130"></a>
-<span class="sourceLineNo">131</span>     */<a name="line.131"></a>
-<span class="sourceLineNo">132</span>    public void reset() {<a name="line.132"></a>
-<span class="sourceLineNo">133</span>        this.lineParser.reset();<a name="line.133"></a>
-<span class="sourceLineNo">134</span>        this.state = State.FIRST_LINE;<a name="line.134"></a>
-<span class="sourceLineNo">135</span>        this.message = null;<a name="line.135"></a>
-<span class="sourceLineNo">136</span>        this.endLine = null;<a name="line.136"></a>
-<span class="sourceLineNo">137</span>        this.allowBody = false;<a name="line.137"></a>
-<span class="sourceLineNo">138</span>        this.body = null;<a name="line.138"></a>
-<span class="sourceLineNo">139</span>        this.boundaryInputParser = null;<a name="line.139"></a>
-<span class="sourceLineNo">140</span>    }<a name="line.140"></a>
-<span class="sourceLineNo">141</span><a name="line.141"></a>
-<span class="sourceLineNo">142</span>    /**<a name="line.142"></a>
-<span class="sourceLineNo">143</span>     * Determine whether this instance is sitting at a message boundary.<a name="line.143"></a>
-<span class="sourceLineNo">144</span>     *<a name="line.144"></a>
-<span class="sourceLineNo">145</span>     * &lt;p&gt;<a name="line.145"></a>
-<span class="sourceLineNo">146</span>     * This will be true after initial construction, an invocation of {@link #reset},<a name="line.146"></a>
-<span class="sourceLineNo">147</span>     * or an invocation {@link #inputMessageByte inputMessageByte()} that returned a non-null value.<a name="line.147"></a>
-<span class="sourceLineNo">148</span>     * &lt;/p&gt;<a name="line.148"></a>
-<span class="sourceLineNo">149</span>     */<a name="line.149"></a>
-<span class="sourceLineNo">150</span>    public boolean isBetweenMessages() {<a name="line.150"></a>
-<span class="sourceLineNo">151</span>        return this.state == State.FIRST_LINE &amp;&amp; this.lineParser.isBetweenLines();<a name="line.151"></a>
-<span class="sourceLineNo">152</span>    }<a name="line.152"></a>
+<span class="sourceLineNo">046</span>    private final LineInputParser lineParser;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>    private final int maxBodySize;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>    private final int maxPathUris;<a name="line.48"></a>
+<span class="sourceLineNo">049</span>    private final int maxMimeHeaders;<a name="line.49"></a>
+<span class="sourceLineNo">050</span>    private final int maxExtensionHeaders;<a name="line.50"></a>
+<span class="sourceLineNo">051</span><a name="line.51"></a>
+<span class="sourceLineNo">052</span>    private State state = State.FIRST_LINE;     // parse state<a name="line.52"></a>
+<span class="sourceLineNo">053</span>    private MsrpMessage message;                // the message we are building<a name="line.53"></a>
+<span class="sourceLineNo">054</span>    private String endLine;<a name="line.54"></a>
+<span class="sourceLineNo">055</span>    private boolean allowBody;<a name="line.55"></a>
+<span class="sourceLineNo">056</span>    private ByteArrayOutputStream body;<a name="line.56"></a>
+<span class="sourceLineNo">057</span>    private BoundaryInputParser boundaryInputParser;<a name="line.57"></a>
+<span class="sourceLineNo">058</span><a name="line.58"></a>
+<span class="sourceLineNo">059</span>    /**<a name="line.59"></a>
+<span class="sourceLineNo">060</span>     * Constructor. Uses default size limits.<a name="line.60"></a>
+<span class="sourceLineNo">061</span>     */<a name="line.61"></a>
+<span class="sourceLineNo">062</span>    public MsrpInputParser() {<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        this(DEFAULT_MAX_LINE_LENGTH, DEFAULT_MAX_CONTENT_LENGTH,<a name="line.63"></a>
+<span class="sourceLineNo">064</span>          DEFAULT_MAX_PATH_URIS, DEFAULT_MAX_MIME_HEADERS, DEFAULT_MAX_EXTENSION_HEADERS);<a name="line.64"></a>
+<span class="sourceLineNo">065</span>    }<a name="line.65"></a>
+<span class="sourceLineNo">066</span><a name="line.66"></a>
+<span class="sourceLineNo">067</span>    /**<a name="line.67"></a>
+<span class="sourceLineNo">068</span>     * Primary constructor.<a name="line.68"></a>
+<span class="sourceLineNo">069</span>     *<a name="line.69"></a>
+<span class="sourceLineNo">070</span>     * @param maxLineLength maximum allowed header line length in bytes<a name="line.70"></a>
+<span class="sourceLineNo">071</span>     * @param maxBodySize maximum allowed body size in bytes<a name="line.71"></a>
+<span class="sourceLineNo">072</span>     * @param maxPathUris maximum number of URI's allowed in {@code To-Path} or {@code From-Path} header<a name="line.72"></a>
+<span class="sourceLineNo">073</span>     * @param maxMimeHeaders maximum number of allowed MIME headers<a name="line.73"></a>
+<span class="sourceLineNo">074</span>     * @param maxExtensionHeaders maximum number of allowed extension headers<a name="line.74"></a>
+<span class="sourceLineNo">075</span>     * @throws IllegalArgumentException if {@code input} is null<a name="line.75"></a>
+<span class="sourceLineNo">076</span>     */<a name="line.76"></a>
+<span class="sourceLineNo">077</span>    public MsrpInputParser(int maxLineLength, int maxBodySize, int maxPathUris, int maxMimeHeaders, int maxExtensionHeaders) {<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        this.lineParser = new LineInputParser(maxLineLength);<a name="line.78"></a>
+<span class="sourceLineNo">079</span>        this.maxBodySize = maxBodySize;<a name="line.79"></a>
+<span class="sourceLineNo">080</span>        this.maxPathUris = maxPathUris;<a name="line.80"></a>
+<span class="sourceLineNo">081</span>        this.maxMimeHeaders = maxMimeHeaders;<a name="line.81"></a>
+<span class="sourceLineNo">082</span>        this.maxExtensionHeaders = maxExtensionHeaders;<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    }<a name="line.83"></a>
+<span class="sourceLineNo">084</span><a name="line.84"></a>
+<span class="sourceLineNo">085</span>    /**<a name="line.85"></a>
+<span class="sourceLineNo">086</span>     * Input the next byte.<a name="line.86"></a>
+<span class="sourceLineNo">087</span>     *<a name="line.87"></a>
+<span class="sourceLineNo">088</span>     * @param b input byte<a name="line.88"></a>
+<span class="sourceLineNo">089</span>     * @return next complete message, or null if more bytes are needed<a name="line.89"></a>
+<span class="sourceLineNo">090</span>     * @throws ProtocolException if a protocol violation is detected<a name="line.90"></a>
+<span class="sourceLineNo">091</span>     */<a name="line.91"></a>
+<span class="sourceLineNo">092</span>    public MsrpMessage inputMessageByte(byte b) throws ProtocolException {<a name="line.92"></a>
+<span class="sourceLineNo">093</span><a name="line.93"></a>
+<span class="sourceLineNo">094</span>        // Input byte<a name="line.94"></a>
+<span class="sourceLineNo">095</span>        boolean complete = false;<a name="line.95"></a>
+<span class="sourceLineNo">096</span>        switch (this.state) {<a name="line.96"></a>
+<span class="sourceLineNo">097</span>        case FIRST_LINE:<a name="line.97"></a>
+<span class="sourceLineNo">098</span>            this.inputFirstLineByte(b);<a name="line.98"></a>
+<span class="sourceLineNo">099</span>            break;<a name="line.99"></a>
+<span class="sourceLineNo">100</span>        case TO_PATH:<a name="line.100"></a>
+<span class="sourceLineNo">101</span>            if (this.inputPathHeaderByte(this.message.getHeaders().getToPath(), MsrpConstants.TO_PATH_HEADER, b))<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                this.state = State.FROM_PATH;<a name="line.102"></a>
+<span class="sourceLineNo">103</span>            break;<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        case FROM_PATH:<a name="line.104"></a>
+<span class="sourceLineNo">105</span>            if (this.inputPathHeaderByte(this.message.getHeaders().getFromPath(), MsrpConstants.FROM_PATH_HEADER, b))<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                this.state = State.HEADER;<a name="line.106"></a>
+<span class="sourceLineNo">107</span>            break;<a name="line.107"></a>
+<span class="sourceLineNo">108</span>        case HEADER:<a name="line.108"></a>
+<span class="sourceLineNo">109</span>            complete = this.inputHeaderByte(b);<a name="line.109"></a>
+<span class="sourceLineNo">110</span>            break;<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        case BODY_CONTENT:<a name="line.111"></a>
+<span class="sourceLineNo">112</span>            complete = this.inputBodyContentByte(b);<a name="line.112"></a>
+<span class="sourceLineNo">113</span>            break;<a name="line.113"></a>
+<span class="sourceLineNo">114</span>        default:<a name="line.114"></a>
+<span class="sourceLineNo">115</span>            throw new RuntimeException("internal error");<a name="line.115"></a>
+<span class="sourceLineNo">116</span>        }<a name="line.116"></a>
+<span class="sourceLineNo">117</span><a name="line.117"></a>
+<span class="sourceLineNo">118</span>        // Message complete?<a name="line.118"></a>
+<span class="sourceLineNo">119</span>        if (complete) {<a name="line.119"></a>
+<span class="sourceLineNo">120</span>            final MsrpMessage result = this.message;<a name="line.120"></a>
+<span class="sourceLineNo">121</span>            this.reset();<a name="line.121"></a>
+<span class="sourceLineNo">122</span>            return result;<a name="line.122"></a>
+<span class="sourceLineNo">123</span>        }<a name="line.123"></a>
+<span class="sourceLineNo">124</span>        return null;<a name="line.124"></a>
+<span class="sourceLineNo">125</span>    }<a name="line.125"></a>
+<span class="sourceLineNo">126</span><a name="line.126"></a>
+<span class="sourceLineNo">127</span>    /**<a name="line.127"></a>
+<span class="sourceLineNo">128</span>     * Reset parse state.<a name="line.128"></a>
+<span class="sourceLineNo">129</span>     */<a name="line.129"></a>
+<span class="sourceLineNo">130</span>    public void reset() {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>        this.lineParser.reset();<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        this.state = State.FIRST_LINE;<a name="line.132"></a>
+<span class="sourceLineNo">133</span>        this.message = null;<a name="line.133"></a>
+<span class="sourceLineNo">134</span>        this.endLine = null;<a name="line.134"></a>
+<span class="sourceLineNo">135</span>        this.allowBody = false;<a name="line.135"></a>
+<span class="sourceLineNo">136</span>        this.body = null;<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        this.boundaryInputParser = null;<a name="line.137"></a>
+<span class="sourceLineNo">138</span>    }<a name="line.138"></a>
+<span class="sourceLineNo">139</span><a name="line.139"></a>
+<span class="sourceLineNo">140</span>    /**<a name="line.140"></a>
+<span class="sourceLineNo">141</span>     * Determine whether this instance is sitting at a message boundary.<a name="line.141"></a>
+<span class="sourceLineNo">142</span>     *<a name="line.142"></a>
+<span class="sourceLineNo">143</span>     * &lt;p&gt;<a name="line.143"></a>
+<span class="sourceLineNo">144</span>     * This will be true after initial construction, an invocation of {@link #reset},<a name="line.144"></a>
+<span class="sourceLineNo">145</span>     * or an invocation {@link #inputMessageByte inputMessageByte()} that returned a non-null value.<a name="line.145"></a>
+<span class="sourceLineNo">146</span>     * &lt;/p&gt;<a name="line.146"></a>
+<span class="sourceLineNo">147</span>     */<a name="line.147"></a>
+<span class="sourceLineNo">148</span>    public boolean isBetweenMessages() {<a name="line.148"></a>
+<span class="sourceLineNo">149</span>        return this.state == State.FIRST_LINE &amp;&amp; this.lineParser.isBetweenLines();<a name="line.149"></a>
+<span class="sourceLineNo">150</span>    }<a name="line.150"></a>
+<span class="sourceLineNo">151</span><a name="line.151"></a>
+<span class="sourceLineNo">152</span>// Internal parsing methods<a name="line.152"></a>
 <span class="sourceLineNo">153</span><a name="line.153"></a>
-<span class="sourceLineNo">154</span>// Internal parsing methods<a name="line.154"></a>
+<span class="sourceLineNo">154</span>    private void inputFirstLineByte(byte b) throws ProtocolException {<a name="line.154"></a>
 <span class="sourceLineNo">155</span><a name="line.155"></a>
-<span class="sourceLineNo">156</span>    private void inputFirstLineByte(byte b) throws ProtocolException {<a name="line.156"></a>
-<span class="sourceLineNo">157</span><a name="line.157"></a>
-<span class="sourceLineNo">158</span>        // Read complete header line<a name="line.158"></a>
-<span class="sourceLineNo">159</span>        final String line = this.lineParser.inputLineByte(b);<a name="line.159"></a>
-<span class="sourceLineNo">160</span>        if (line == null)<a name="line.160"></a>
-<span class="sourceLineNo">161</span>            return;<a name="line.161"></a>
-<span class="sourceLineNo">162</span><a name="line.162"></a>
-<span class="sourceLineNo">163</span>        // Request or response?<a name="line.163"></a>
-<span class="sourceLineNo">164</span>        Matcher matcher;<a name="line.164"></a>
-<span class="sourceLineNo">165</span>        if ((matcher = REQUEST_LINE_PATTERN.matcher(line)).matches())<a name="line.165"></a>
-<span class="sourceLineNo">166</span>            this.message = new MsrpRequest(matcher.group(1), matcher.group(2), null);<a name="line.166"></a>
-<span class="sourceLineNo">167</span>        else if ((matcher = RESPONSE_LINE_PATTERN.matcher(line)).matches())<a name="line.167"></a>
-<span class="sourceLineNo">168</span>            this.message = new MsrpResponse(matcher.group(1), Integer.parseInt(matcher.group(2), 10), matcher.group(4), null);<a name="line.168"></a>
-<span class="sourceLineNo">169</span>        else<a name="line.169"></a>
-<span class="sourceLineNo">170</span>            throw new ProtocolException("invalid start line " + Util.quotrunc(line));<a name="line.170"></a>
-<span class="sourceLineNo">171</span><a name="line.171"></a>
-<span class="sourceLineNo">172</span>        // Prepare for parsing headers<a name="line.172"></a>
-<span class="sourceLineNo">173</span>        this.endLine = MsrpConstants.END_LINE_PREFIX + this.message.getTransactionId();<a name="line.173"></a>
-<span class="sourceLineNo">174</span>        this.allowBody = this.message instanceof MsrpRequest;<a name="line.174"></a>
-<span class="sourceLineNo">175</span><a name="line.175"></a>
-<span class="sourceLineNo">176</span>        // Update state<a name="line.176"></a>
-<span class="sourceLineNo">177</span>        this.state = State.TO_PATH;<a name="line.177"></a>
-<span class="sourceLineNo">178</span>    }<a name="line.178"></a>
+<span class="sourceLineNo">156</span>        // Read complete header line<a name="line.156"></a>
+<span class="sourceLineNo">157</span>        final String line = this.lineParser.inputLineByte(b);<a name="line.157"></a>
+<span class="sourceLineNo">158</span>        if (line == null)<a name="line.158"></a>
+<span class="sourceLineNo">159</span>            return;<a name="line.159"></a>
+<span class="sourceLineNo">160</span><a name="line.160"></a>
+<span class="sourceLineNo">161</span>        // Request or response?<a name="line.161"></a>
+<span class="sourceLineNo">162</span>        Matcher matcher;<a name="line.162"></a>
+<span class="sourceLineNo">163</span>        if ((matcher = REQUEST_LINE_PATTERN.matcher(line)).matches())<a name="line.163"></a>
+<span class="sourceLineNo">164</span>            this.message = new MsrpRequest(matcher.group(1), matcher.group(2), null);<a name="line.164"></a>
+<span class="sourceLineNo">165</span>        else if ((matcher = RESPONSE_LINE_PATTERN.matcher(line)).matches())<a name="line.165"></a>
+<span class="sourceLineNo">166</span>            this.message = new MsrpResponse(matcher.group(1), Integer.parseInt(matcher.group(2), 10), matcher.group(4), null);<a name="line.166"></a>
+<span class="sourceLineNo">167</span>        else<a name="line.167"></a>
+<span class="sourceLineNo">168</span>            throw new ProtocolException("invalid start line " + Util.quotrunc(line));<a name="line.168"></a>
+<span class="sourceLineNo">169</span><a name="line.169"></a>
+<span class="sourceLineNo">170</span>        // Prepare for parsing headers<a name="line.170"></a>
+<span class="sourceLineNo">171</span>        this.endLine = MsrpConstants.END_LINE_PREFIX + this.message.getTransactionId();<a name="line.171"></a>
+<span class="sourceLineNo">172</span>        this.allowBody = this.message instanceof MsrpRequest;<a name="line.172"></a>
+<span class="sourceLineNo">173</span><a name="line.173"></a>
+<span class="sourceLineNo">174</span>        // Update state<a name="line.174"></a>
+<span class="sourceLineNo">175</span>        this.state = State.TO_PATH;<a name="line.175"></a>
+<span class="sourceLineNo">176</span>    }<a name="line.176"></a>
+<span class="sourceLineNo">177</span><a name="line.177"></a>
+<span class="sourceLineNo">178</span>    private boolean inputHeaderByte(byte b) throws ProtocolException {<a name="line.178"></a>
 <span class="sourceLineNo">179</span><a name="line.179"></a>
-<span class="sourceLineNo">180</span>    private boolean inputHeaderByte(byte b) throws ProtocolException {<a name="line.180"></a>
-<span class="sourceLineNo">181</span><a name="line.181"></a>
-<span class="sourceLineNo">182</span>        // Read complete header<a name="line.182"></a>
-<span class="sourceLineNo">183</span>        final Header header = this.inputHeaderByteForHeader(b);<a name="line.183"></a>
-<span class="sourceLineNo">184</span>        if (header == null)<a name="line.184"></a>
-<span class="sourceLineNo">185</span>            return false;<a name="line.185"></a>
-<span class="sourceLineNo">186</span><a name="line.186"></a>
-<span class="sourceLineNo">187</span>        // No more headers?<a name="line.187"></a>
-<span class="sourceLineNo">188</span>        if (header == HEADER_EOF) {<a name="line.188"></a>
-<span class="sourceLineNo">189</span><a name="line.189"></a>
-<span class="sourceLineNo">190</span>            // Is message allowed to have a body?<a name="line.190"></a>
-<span class="sourceLineNo">191</span>            if (this.body != null &amp;&amp; !this.allowBody)<a name="line.191"></a>
-<span class="sourceLineNo">192</span>                throw new ProtocolException("message must not contain a body but does");<a name="line.192"></a>
-<span class="sourceLineNo">193</span><a name="line.193"></a>
-<span class="sourceLineNo">194</span>            // Sanity check presence of MIME headers vs. having a body<a name="line.194"></a>
-<span class="sourceLineNo">195</span>            if (this.body != null &amp;&amp; this.message.getHeaders().getContentType() == null) {<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                throw new ProtocolException("missing header `" + MsrpConstants.CONTENT_TYPE_HEADER<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                  + "' required when message has a body");<a name="line.197"></a>
-<span class="sourceLineNo">198</span>            }<a name="line.198"></a>
-<span class="sourceLineNo">199</span>            if (this.body == null<a name="line.199"></a>
-<span class="sourceLineNo">200</span>              &amp;&amp; (this.message.getHeaders().getContentType() != null || !this.message.getHeaders().getMimeHeaders().isEmpty()))<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                throw new ProtocolException("MIME headers are not allowed when message has no body");<a name="line.201"></a>
-<span class="sourceLineNo">202</span><a name="line.202"></a>
-<span class="sourceLineNo">203</span>            // If there is no body, we're done<a name="line.203"></a>
-<span class="sourceLineNo">204</span>            if (this.body == null)<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                return true;<a name="line.205"></a>
-<span class="sourceLineNo">206</span><a name="line.206"></a>
-<span class="sourceLineNo">207</span>            // Start parsing body<a name="line.207"></a>
-<span class="sourceLineNo">208</span>            this.boundaryInputParser = new BoundaryInputParser(this.message.getTransactionId());<a name="line.208"></a>
-<span class="sourceLineNo">209</span>            this.state = State.BODY_CONTENT;<a name="line.209"></a>
-<span class="sourceLineNo">210</span>            return false;<a name="line.210"></a>
-<span class="sourceLineNo">211</span>        }<a name="line.211"></a>
-<span class="sourceLineNo">212</span><a name="line.212"></a>
-<span class="sourceLineNo">213</span>        // Handle header<a name="line.213"></a>
-<span class="sourceLineNo">214</span>        final String name = header.getName();<a name="line.214"></a>
-<span class="sourceLineNo">215</span>        final String value = header.getValue();<a name="line.215"></a>
-<span class="sourceLineNo">216</span>        if (name.equalsIgnoreCase(MsrpConstants.MESSAGE_ID_HEADER)) {<a name="line.216"></a>
-<span class="sourceLineNo">217</span>            if (!Pattern.compile(Util.IDENT_REGEX).matcher(value).matches())<a name="line.217"></a>
-<span class="sourceLineNo">218</span>                throw new ProtocolException("invalid `" + name + "' header value " + Util.quotrunc(value));<a name="line.218"></a>
-<span class="sourceLineNo">219</span>            this.message.getHeaders().setMessageId(value);<a name="line.219"></a>
-<span class="sourceLineNo">220</span>        } else if (name.equalsIgnoreCase(MsrpConstants.SUCCESS_REPORT_HEADER)) {<a name="line.220"></a>
-<span class="sourceLineNo">221</span>            switch (value) {<a name="line.221"></a>
-<span class="sourceLineNo">222</span>            case MsrpConstants.YES_HEADER_VALUE:<a name="line.222"></a>
-<span class="sourceLineNo">223</span>                this.message.getHeaders().setSuccessReport(true);<a name="line.223"></a>
-<span class="sourceLineNo">224</span>                break;<a name="line.224"></a>
-<span class="sourceLineNo">225</span>            case MsrpConstants.NO_HEADER_VALUE:<a name="line.225"></a>
-<span class="sourceLineNo">226</span>                this.message.getHeaders().setSuccessReport(false);<a name="line.226"></a>
-<span class="sourceLineNo">227</span>                break;<a name="line.227"></a>
-<span class="sourceLineNo">228</span>            default:<a name="line.228"></a>
-<span class="sourceLineNo">229</span>                throw new ProtocolException("invalid `" + name + "' header value " + Util.quotrunc(value));<a name="line.229"></a>
-<span class="sourceLineNo">230</span>            }<a name="line.230"></a>
-<span class="sourceLineNo">231</span>        } else if (name.equalsIgnoreCase(MsrpConstants.FAILURE_REPORT_HEADER)) {<a name="line.231"></a>
-<span class="sourceLineNo">232</span>            switch (value) {<a name="line.232"></a>
-<span class="sourceLineNo">233</span>            case MsrpConstants.YES_HEADER_VALUE:<a name="line.233"></a>
-<span class="sourceLineNo">234</span>                this.message.getHeaders().setFailureReport(FailureReport.YES);<a name="line.234"></a>
-<span class="sourceLineNo">235</span>                break;<a name="line.235"></a>
-<span class="sourceLineNo">236</span>            case MsrpConstants.NO_HEADER_VALUE:<a name="line.236"></a>
-<span class="sourceLineNo">237</span>                this.message.getHeaders().setFailureReport(FailureReport.NO);<a name="line.237"></a>
-<span class="sourceLineNo">238</span>                break;<a name="line.238"></a>
-<span class="sourceLineNo">239</span>            case MsrpConstants.PARTIAL_HEADER_VALUE:<a name="line.239"></a>
-<span class="sourceLineNo">240</span>                this.message.getHeaders().setFailureReport(FailureReport.PARTIAL);<a name="line.240"></a>
-<span class="sourceLineNo">241</span>                break;<a name="line.241"></a>
-<span class="sourceLineNo">242</span>            default:<a name="line.242"></a>
-<span class="sourceLineNo">243</span>                throw new ProtocolException("invalid `" + name + "' header value " + Util.quotrunc(value));<a name="line.243"></a>
-<span class="sourceLineNo">244</span>            }<a name="line.244"></a>
-<span class="sourceLineNo">245</span>        } else if (name.equalsIgnoreCase(MsrpConstants.BYTE_RANGE_HEADER)) {<a name="line.245"></a>
-<span class="sourceLineNo">246</span>            try {<a name="line.246"></a>
-<span class="sourceLineNo">247</span>                this.message.getHeaders().setByteRange(ByteRange.fromString(value));<a name="line.247"></a>
-<span class="sourceLineNo">248</span>            } catch (IllegalArgumentException e) {<a name="line.248"></a>
-<span class="sourceLineNo">249</span>                throw new ProtocolException("invalid `" + name + "' header value " + Util.quotrunc(value));<a name="line.249"></a>
-<span class="sourceLineNo">250</span>            }<a name="line.250"></a>
-<span class="sourceLineNo">251</span>        } else if (name.equalsIgnoreCase(MsrpConstants.STATUS_HEADER)) {<a name="line.251"></a>
-<span class="sourceLineNo">252</span>            try {<a name="line.252"></a>
-<span class="sourceLineNo">253</span>                this.message.getHeaders().setStatus(Status.fromString(value));<a name="line.253"></a>
-<span class="sourceLineNo">254</span>            } catch (IllegalArgumentException e) {<a name="line.254"></a>
-<span class="sourceLineNo">255</span>                throw new ProtocolException("invalid `" + name + "' header value " + Util.quotrunc(value));<a name="line.255"></a>
-<span class="sourceLineNo">256</span>            }<a name="line.256"></a>
-<span class="sourceLineNo">257</span>        } else if (name.equalsIgnoreCase(MsrpConstants.CONTENT_TYPE_HEADER))<a name="line.257"></a>
-<span class="sourceLineNo">258</span>            this.message.getHeaders().setContentType(value);<a name="line.258"></a>
-<span class="sourceLineNo">259</span>        else {<a name="line.259"></a>
-<span class="sourceLineNo">260</span>            if (MsrpRequest.isMimeHeader(name)) {<a name="line.260"></a>
-<span class="sourceLineNo">261</span>                this.message.getHeaders().getMimeHeaders().remove(header);               // ensure last one wins<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                if (this.message.getHeaders().getMimeHeaders().size() &gt;= this.maxMimeHeaders)<a name="line.262"></a>
-<span class="sourceLineNo">263</span>                    throw new ProtocolException("too many MIME headers (maximum " + this.maxMimeHeaders + ")");<a name="line.263"></a>
-<span class="sourceLineNo">264</span>                this.message.getHeaders().getMimeHeaders().add(header);<a name="line.264"></a>
-<span class="sourceLineNo">265</span>            } else {<a name="line.265"></a>
-<span class="sourceLineNo">266</span>                this.message.getHeaders().getExtensionHeaders().remove(header);          // ensure last one wins<a name="line.266"></a>
-<span class="sourceLineNo">267</span>                if (this.message.getHeaders().getExtensionHeaders().size() &gt;= this.maxExtensionHeaders)<a name="line.267"></a>
-<span class="sourceLineNo">268</span>                    throw new ProtocolException("too many extension headers (maximum " + this.maxExtensionHeaders + ")");<a name="line.268"></a>
-<span class="sourceLineNo">269</span>                this.message.getHeaders().getExtensionHeaders().add(header);<a name="line.269"></a>
-<span class="sourceLineNo">270</span>            }<a name="line.270"></a>
-<span class="sourceLineNo">271</span>        }<a name="line.271"></a>
-<span class="sourceLineNo">272</span><a name="line.272"></a>
-<span class="sourceLineNo">273</span>        // Done<a name="line.273"></a>
-<span class="sourceLineNo">274</span>        return false;<a name="line.274"></a>
-<span class="sourceLineNo">275</span>    }<a name="line.275"></a>
-<span class="sourceLineNo">276</span><a name="line.276"></a>
-<span class="sourceLineNo">277</span>    // Input body content byte, returning true if message is complete<a name="line.277"></a>
-<span class="sourceLineNo">278</span>    private boolean inputBodyContentByte(byte b) throws ProtocolException {<a name="line.278"></a>
-<span class="sourceLineNo">279</span><a name="line.279"></a>
-<span class="sourceLineNo">280</span>        // Input body byte<a name="line.280"></a>
-<span class="sourceLineNo">281</span>        final byte[] data = this.boundaryInputParser.inputContentByte(b);<a name="line.281"></a>
-<span class="sourceLineNo">282</span>        if (data != null) {<a name="line.282"></a>
-<span class="sourceLineNo">283</span>            this.body.write(data, 0, data.length);<a name="line.283"></a>
-<span class="sourceLineNo">284</span>            if (this.body.size() &gt; this.maxBodySize)<a name="line.284"></a>
-<span class="sourceLineNo">285</span>                throw new ProtocolException("body size exceeds maximum size limit (" + this.maxBodySize + " bytes)");<a name="line.285"></a>
-<span class="sourceLineNo">286</span>            return false;<a name="line.286"></a>
-<span class="sourceLineNo">287</span>        }<a name="line.287"></a>
-<span class="sourceLineNo">288</span><a name="line.288"></a>
-<span class="sourceLineNo">289</span>        // Add body to message and set flags<a name="line.289"></a>
-<span class="sourceLineNo">290</span>        final MsrpRequest request = (MsrpRequest)this.message;<a name="line.290"></a>
-<span class="sourceLineNo">291</span>        request.setBody(this.body.toByteArray());<a name="line.291"></a>
-<span class="sourceLineNo">292</span>        switch (this.boundaryInputParser.getFlagByte()) {<a name="line.292"></a>
-<span class="sourceLineNo">293</span>        case MsrpConstants.FLAG_INCOMPLETE:<a name="line.293"></a>
-<span class="sourceLineNo">294</span>            request.setComplete(false);<a name="line.294"></a>
-<span class="sourceLineNo">295</span>            request.setAborted(false);<a name="line.295"></a>
-<span class="sourceLineNo">296</span>            break;<a name="line.296"></a>
-<span class="sourceLineNo">297</span>        case MsrpConstants.FLAG_COMPLETE:<a name="line.297"></a>
-<span class="sourceLineNo">298</span>            request.setComplete(true);<a name="line.298"></a>
-<span class="sourceLineNo">299</span>            break;<a name="line.299"></a>
-<span class="sourceLineNo">300</span>        case MsrpConstants.FLAG_ABORT:<a name="line.300"></a>
-<span class="sourceLineNo">301</span>            request.setAborted(true);<a name="line.301"></a>
-<span class="sourceLineNo">302</span>            break;<a name="line.302"></a>
-<span class="sourceLineNo">303</span>        default:<a name="line.303"></a>
-<span class="sourceLineNo">304</span>            throw new RuntimeException("internal error");<a name="line.304"></a>
-<span class="sourceLineNo">305</span>        }<a name="line.305"></a>
-<span class="sourceLineNo">306</span><a name="line.306"></a>
-<span class="sourceLineNo">307</span>        // Done<a name="line.307"></a>
-<span class="sourceLineNo">308</span>        return true;<a name="line.308"></a>
-<span class="sourceLineNo">309</span>    }<a name="line.309"></a>
-<span class="sourceLineNo">310</span><a name="line.310"></a>
-<span class="sourceLineNo">311</span>    // Input required path header byte, returning true if header is complete<a name="line.311"></a>
-<span class="sourceLineNo">312</span>    private boolean inputPathHeaderByte(List&lt;MsrpUri&gt; uriList, String name, byte b) throws ProtocolException {<a name="line.312"></a>
-<span class="sourceLineNo">313</span><a name="line.313"></a>
-<span class="sourceLineNo">314</span>        // Get complete path(s)<a name="line.314"></a>
-<span class="sourceLineNo">315</span>        final String paths = this.inputRequiredHeaderByte(name, b);<a name="line.315"></a>
-<span class="sourceLineNo">316</span>        if (paths == null)<a name="line.316"></a>
-<span class="sourceLineNo">317</span>            return false;<a name="line.317"></a>
-<span class="sourceLineNo">318</span><a name="line.318"></a>
-<span class="sourceLineNo">319</span>        // Must be at least one<a name="line.319"></a>
-<span class="sourceLineNo">320</span>        if (paths.length() == 0)<a name="line.320"></a>
-<span class="sourceLineNo">321</span>            throw new ProtocolException("invalid empty `" + name + "' header");<a name="line.321"></a>
-<span class="sourceLineNo">322</span><a name="line.322"></a>
-<span class="sourceLineNo">323</span>        // Parse path into URI's<a name="line.323"></a>
-<span class="sourceLineNo">324</span>        int end;<a name="line.324"></a>
-<span class="sourceLineNo">325</span>        for (int start = 0; start &lt; paths.length(); start = end) {<a name="line.325"></a>
-<span class="sourceLineNo">326</span>            if ((end = paths.indexOf(' ', start)) == -1)<a name="line.326"></a>
-<span class="sourceLineNo">327</span>                end = paths.length();<a name="line.327"></a>
-<span class="sourceLineNo">328</span>            final String uri = paths.substring(start, end);<a name="line.328"></a>
-<span class="sourceLineNo">329</span>            if (uriList.size() &gt;= this.maxPathUris)<a name="line.329"></a>
-<span class="sourceLineNo">330</span>                throw new ProtocolException("too many URI's in `" + name + "' header (maximum " + this.maxPathUris + ")");<a name="line.330"></a>
-<span class="sourceLineNo">331</span>            try {<a name="line.331"></a>
-<span class="sourceLineNo">332</span>                uriList.add(new MsrpUri(uri));<a name="line.332"></a>
-<span class="sourceLineNo">333</span>            } catch (URISyntaxException e) {<a name="line.333"></a>
-<span class="sourceLineNo">334</span>                throw new ProtocolException("invalid URI " + Util.quotrunc(uri) + " in `" + name + "' header", e);<a name="line.334"></a>
-<span class="sourceLineNo">335</span>            }<a name="line.335"></a>
-<span class="sourceLineNo">336</span>        }<a name="line.336"></a>
-<span class="sourceLineNo">337</span><a name="line.337"></a>
-<span class="sourceLineNo">338</span>        // Done<a name="line.338"></a>
-<span class="sourceLineNo">339</span>        return true;<a name="line.339"></a>
-<span class="sourceLineNo">340</span>    }<a name="line.340"></a>
-<span class="sourceLineNo">341</span><a name="line.341"></a>
-<span class="sourceLineNo">342</span>    // Input required header byte, returning header value if header is complete<a name="line.342"></a>
-<span class="sourceLineNo">343</span>    private String inputRequiredHeaderByte(String name, byte b) throws ProtocolException {<a name="line.343"></a>
-<span class="sourceLineNo">344</span>        final Header header = this.inputHeaderByteForHeader(b);<a name="line.344"></a>
-<span class="sourceLineNo">345</span>        if (header == null)<a name="line.345"></a>
-<span class="sourceLineNo">346</span>            return null;<a name="line.346"></a>
-<span class="sourceLineNo">347</span>        if (header == HEADER_EOF)<a name="line.347"></a>
-<span class="sourceLineNo">348</span>            throw new ProtocolException("missing required `" + name + "' header");<a name="line.348"></a>
-<span class="sourceLineNo">349</span>        if (!header.getName().equalsIgnoreCase(name)) {<a name="line.349"></a>
-<span class="sourceLineNo">350</span>            throw new ProtocolException("expected required `" + name + "' header but found "<a name="line.350"></a>
-<span class="sourceLineNo">351</span>              + Util.quotrunc(header.getName()) + " header instead");<a name="line.351"></a>
-<span class="sourceLineNo">352</span>        }<a name="line.352"></a>
-<span class="sourceLineNo">353</span>        return header.getValue();<a name="line.353"></a>
-<span class="sourceLineNo">354</span>    }<a name="line.354"></a>
-<span class="sourceLineNo">355</span><a name="line.355"></a>
-<span class="sourceLineNo">356</span>    // Input header byte, returning null if incomplete, header if complete, or HEADER_EOF if none remain (and setting this.body)<a name="line.356"></a>
-<span class="sourceLineNo">357</span>    private Header inputHeaderByteForHeader(byte b) throws ProtocolException {<a name="line.357"></a>
-<span class="sourceLineNo">358</span><a name="line.358"></a>
-<span class="sourceLineNo">359</span>        // Read complete header line<a name="line.359"></a>
-<span class="sourceLineNo">360</span>        final String line = this.lineParser.inputLineByte(b);<a name="line.360"></a>
-<span class="sourceLineNo">361</span>        if (line == null)<a name="line.361"></a>
-<span class="sourceLineNo">362</span>            return null;<a name="line.362"></a>
-<span class="sourceLineNo">363</span><a name="line.363"></a>
-<span class="sourceLineNo">364</span>        // End line?<a name="line.364"></a>
-<span class="sourceLineNo">365</span>        assert this.endLine != null;<a name="line.365"></a>
-<span class="sourceLineNo">366</span>        if (line.startsWith(this.endLine) &amp;&amp; line.length() == this.endLine.length() + 1) {<a name="line.366"></a>
-<span class="sourceLineNo">367</span>            final char flag = line.charAt(this.endLine.length());<a name="line.367"></a>
-<span class="sourceLineNo">368</span>            if (flag != (char)MsrpConstants.FLAG_COMPLETE)<a name="line.368"></a>
-<span class="sourceLineNo">369</span>                throw new ProtocolException("invalid end-line flag byte `" + flag + "' in message without body");<a name="line.369"></a>
-<span class="sourceLineNo">370</span>            this.body = null;<a name="line.370"></a>
-<span class="sourceLineNo">371</span>            return HEADER_EOF;<a name="line.371"></a>
-<span class="sourceLineNo">372</span>        }<a name="line.372"></a>
-<span class="sourceLineNo">373</span><a name="line.373"></a>
-<span class="sourceLineNo">374</span>        // Blank line?<a name="line.374"></a>
-<span class="sourceLineNo">375</span>        if (line.length() == 0) {<a name="line.375"></a>
-<span class="sourceLineNo">376</span>            this.body = new ByteArrayOutputStream();<a name="line.376"></a>
-<span class="sourceLineNo">377</span>            return HEADER_EOF;<a name="line.377"></a>
-<span class="sourceLineNo">378</span>        }<a name="line.378"></a>
-<span class="sourceLineNo">379</span><a name="line.379"></a>
-<span class="sourceLineNo">380</span>        // Parse header<a name="line.380"></a>
-<span class="sourceLineNo">381</span>        final Matcher matcher = Pattern.compile(Util.HEADER_REGEX).matcher(line);<a name="line.381"></a>
-<span class="sourceLineNo">382</span>        if (!matcher.matches())<a name="line.382"></a>
-<span class="sourceLineNo">383</span>            throw new ProtocolException("invalid header line " + Util.quotrunc(line));<a name="line.383"></a>
-<span class="sourceLineNo">384</span>        return new Header(matcher.group(1), matcher.group(2));<a name="line.384"></a>
-<span class="sourceLineNo">385</span>    }<a name="line.385"></a>
+<span class="sourceLineNo">180</span>        // Read complete header<a name="line.180"></a>
+<span class="sourceLineNo">181</span>        final Header header = this.inputHeaderByteForHeader(b);<a name="line.181"></a>
+<span class="sourceLineNo">182</span>        if (header == null)<a name="line.182"></a>
+<span class="sourceLineNo">183</span>            return false;<a name="line.183"></a>
+<span class="sourceLineNo">184</span><a name="line.184"></a>
+<span class="sourceLineNo">185</span>        // No more headers?<a name="line.185"></a>
+<span class="sourceLineNo">186</span>        if (header == HEADER_EOF) {<a name="line.186"></a>
+<span class="sourceLineNo">187</span><a name="line.187"></a>
+<span class="sourceLineNo">188</span>            // Is message allowed to have a body?<a name="line.188"></a>
+<span class="sourceLineNo">189</span>            if (this.body != null &amp;&amp; !this.allowBody)<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                throw new ProtocolException("message must not contain a body but does");<a name="line.190"></a>
+<span class="sourceLineNo">191</span><a name="line.191"></a>
+<span class="sourceLineNo">192</span>            // Sanity check presence of MIME headers vs. having a body<a name="line.192"></a>
+<span class="sourceLineNo">193</span>            if (this.body != null &amp;&amp; this.message.getHeaders().getContentType() == null) {<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                throw new ProtocolException("missing header `" + MsrpConstants.CONTENT_TYPE_HEADER<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                  + "' required when message has a body");<a name="line.195"></a>
+<span class="sourceLineNo">196</span>            }<a name="line.196"></a>
+<span class="sourceLineNo">197</span>            if (this.body == null<a name="line.197"></a>
+<span class="sourceLineNo">198</span>              &amp;&amp; (this.message.getHeaders().getContentType() != null || !this.message.getHeaders().getMimeHeaders().isEmpty()))<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                throw new ProtocolException("MIME headers are not allowed when message has no body");<a name="line.199"></a>
+<span class="sourceLineNo">200</span><a name="line.200"></a>
+<span class="sourceLineNo">201</span>            // If there is no body, we're done<a name="line.201"></a>
+<span class="sourceLineNo">202</span>            if (this.body == null)<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                return true;<a name="line.203"></a>
+<span class="sourceLineNo">204</span><a name="line.204"></a>
+<span class="sourceLineNo">205</span>            // Start parsing body<a name="line.205"></a>
+<span class="sourceLineNo">206</span>            this.boundaryInputParser = new BoundaryInputParser(this.message.getTransactionId());<a name="line.206"></a>
+<span class="sourceLineNo">207</span>            this.state = State.BODY_CONTENT;<a name="line.207"></a>
+<span class="sourceLineNo">208</span>            return false;<a name="line.208"></a>
+<span class="sourceLineNo">209</span>        }<a name="line.209"></a>
+<span class="sourceLineNo">210</span><a name="line.210"></a>
+<span class="sourceLineNo">211</span>        // Handle header<a name="line.211"></a>
+<span class="sourceLineNo">212</span>        final String name = header.getName();<a name="line.212"></a>
+<span class="sourceLineNo">213</span>        final String value = header.getValue();<a name="line.213"></a>
+<span class="sourceLineNo">214</span>        if (name.equalsIgnoreCase(MsrpConstants.MESSAGE_ID_HEADER)) {<a name="line.214"></a>
+<span class="sourceLineNo">215</span>            if (!Pattern.compile(Util.IDENT_REGEX).matcher(value).matches())<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                throw new ProtocolException("invalid `" + name + "' header value " + Util.quotrunc(value));<a name="line.216"></a>
+<span class="sourceLineNo">217</span>            this.message.getHeaders().setMessageId(value);<a name="line.217"></a>
+<span class="sourceLineNo">218</span>        } else if (name.equalsIgnoreCase(MsrpConstants.SUCCESS_REPORT_HEADER)) {<a name="line.218"></a>
+<span class="sourceLineNo">219</span>            switch (value) {<a name="line.219"></a>
+<span class="sourceLineNo">220</span>            case MsrpConstants.YES_HEADER_VALUE:<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                this.message.getHeaders().setSuccessReport(true);<a name="line.221"></a>
+<span class="sourceLineNo">222</span>                break;<a name="line.222"></a>
+<span class="sourceLineNo">223</span>            case MsrpConstants.NO_HEADER_VALUE:<a name="line.223"></a>
+<span class="sourceLineNo">224</span>                this.message.getHeaders().setSuccessReport(false);<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                break;<a name="line.225"></a>
+<span class="sourceLineNo">226</span>            default:<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                throw new ProtocolException("invalid `" + name + "' header value " + Util.quotrunc(value));<a name="line.227"></a>
+<span class="sourceLineNo">228</span>            }<a name="line.228"></a>
+<span class="sourceLineNo">229</span>        } else if (name.equalsIgnoreCase(MsrpConstants.FAILURE_REPORT_HEADER)) {<a name="line.229"></a>
+<span class="sourceLineNo">230</span>            switch (value) {<a name="line.230"></a>
+<span class="sourceLineNo">231</span>            case MsrpConstants.YES_HEADER_VALUE:<a name="line.231"></a>
+<span class="sourceLineNo">232</span>                this.message.getHeaders().setFailureReport(FailureReport.YES);<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                break;<a name="line.233"></a>
+<span class="sourceLineNo">234</span>            case MsrpConstants.NO_HEADER_VALUE:<a name="line.234"></a>
+<span class="sourceLineNo">235</span>                this.message.getHeaders().setFailureReport(FailureReport.NO);<a name="line.235"></a>
+<span class="sourceLineNo">236</span>                break;<a name="line.236"></a>
+<span class="sourceLineNo">237</span>            case MsrpConstants.PARTIAL_HEADER_VALUE:<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                this.message.getHeaders().setFailureReport(FailureReport.PARTIAL);<a name="line.238"></a>
+<span class="sourceLineNo">239</span>                break;<a name="line.239"></a>
+<span class="sourceLineNo">240</span>            default:<a name="line.240"></a>
+<span class="sourceLineNo">241</span>                throw new ProtocolException("invalid `" + name + "' header value " + Util.quotrunc(value));<a name="line.241"></a>
+<span class="sourceLineNo">242</span>            }<a name="line.242"></a>
+<span class="sourceLineNo">243</span>        } else if (name.equalsIgnoreCase(MsrpConstants.BYTE_RANGE_HEADER)) {<a name="line.243"></a>
+<span class="sourceLineNo">244</span>            try {<a name="line.244"></a>
+<span class="sourceLineNo">245</span>                this.message.getHeaders().setByteRange(ByteRange.fromString(value));<a name="line.245"></a>
+<span class="sourceLineNo">246</span>            } catch (IllegalArgumentException e) {<a name="line.246"></a>
+<span class="sourceLineNo">247</span>                throw new ProtocolException("invalid `" + name + "' header value " + Util.quotrunc(value));<a name="line.247"></a>
+<span class="sourceLineNo">248</span>            }<a name="line.248"></a>
+<span class="sourceLineNo">249</span>        } else if (name.equalsIgnoreCase(MsrpConstants.STATUS_HEADER)) {<a name="line.249"></a>
+<span class="sourceLineNo">250</span>            try {<a name="line.250"></a>
+<span class="sourceLineNo">251</span>                this.message.getHeaders().setStatus(Status.fromString(value));<a name="line.251"></a>
+<span class="sourceLineNo">252</span>            } catch (IllegalArgumentException e) {<a name="line.252"></a>
+<span class="sourceLineNo">253</span>                throw new ProtocolException("invalid `" + name + "' header value " + Util.quotrunc(value));<a name="line.253"></a>
+<span class="sourceLineNo">254</span>            }<a name="line.254"></a>
+<span class="sourceLineNo">255</span>        } else if (name.equalsIgnoreCase(MsrpConstants.CONTENT_TYPE_HEADER))<a name="line.255"></a>
+<span class="sourceLineNo">256</span>            this.message.getHeaders().setContentType(value);<a name="line.256"></a>
+<span class="sourceLineNo">257</span>        else {<a name="line.257"></a>
+<span class="sourceLineNo">258</span>            if (MsrpRequest.isMimeHeader(name)) {<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                this.message.getHeaders().getMimeHeaders().remove(header);               // ensure last one wins<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                if (this.message.getHeaders().getMimeHeaders().size() &gt;= this.maxMimeHeaders)<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                    throw new ProtocolException("too many MIME headers (maximum " + this.maxMimeHeaders + ")");<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                this.message.getHeaders().getMimeHeaders().add(header);<a name="line.262"></a>
+<span class="sourceLineNo">263</span>            } else {<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                this.message.getHeaders().getExtensionHeaders().remove(header);          // ensure last one wins<a name="line.264"></a>
+<span class="sourceLineNo">265</span>                if (this.message.getHeaders().getExtensionHeaders().size() &gt;= this.maxExtensionHeaders)<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                    throw new ProtocolException("too many extension headers (maximum " + this.maxExtensionHeaders + ")");<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                this.message.getHeaders().getExtensionHeaders().add(header);<a name="line.267"></a>
+<span class="sourceLineNo">268</span>            }<a name="line.268"></a>
+<span class="sourceLineNo">269</span>        }<a name="line.269"></a>
+<span class="sourceLineNo">270</span><a name="line.270"></a>
+<span class="sourceLineNo">271</span>        // Done<a name="line.271"></a>
+<span class="sourceLineNo">272</span>        return false;<a name="line.272"></a>
+<span class="sourceLineNo">273</span>    }<a name="line.273"></a>
+<span class="sourceLineNo">274</span><a name="line.274"></a>
+<span class="sourceLineNo">275</span>    // Input body content byte, returning true if message is complete<a name="line.275"></a>
+<span class="sourceLineNo">276</span>    private boolean inputBodyContentByte(byte b) throws ProtocolException {<a name="line.276"></a>
+<span class="sourceLineNo">277</span><a name="line.277"></a>
+<span class="sourceLineNo">278</span>        // Input body byte<a name="line.278"></a>
+<span class="sourceLineNo">279</span>        final byte[] data = this.boundaryInputParser.inputContentByte(b);<a name="line.279"></a>
+<span class="sourceLineNo">280</span>        if (data != null) {<a name="line.280"></a>
+<span class="sourceLineNo">281</span>            this.body.write(data, 0, data.length);<a name="line.281"></a>
+<span class="sourceLineNo">282</span>            if (this.body.size() &gt; this.maxBodySize)<a name="line.282"></a>
+<span class="sourceLineNo">283</span>                throw new ProtocolException("body size exceeds maximum size limit (" + this.maxBodySize + " bytes)");<a name="line.283"></a>
+<span class="sourceLineNo">284</span>            return false;<a name="line.284"></a>
+<span class="sourceLineNo">285</span>        }<a name="line.285"></a>
+<span class="sourceLineNo">286</span><a name="line.286"></a>
+<span class="sourceLineNo">287</span>        // Add body to message and set flags<a name="line.287"></a>
+<span class="sourceLineNo">288</span>        final MsrpRequest request = (MsrpRequest)this.message;<a name="line.288"></a>
+<span class="sourceLineNo">289</span>        request.setBody(this.body.toByteArray());<a name="line.289"></a>
+<span class="sourceLineNo">290</span>        switch (this.boundaryInputParser.getFlagByte()) {<a name="line.290"></a>
+<span class="sourceLineNo">291</span>        case MsrpConstants.FLAG_INCOMPLETE:<a name="line.291"></a>
+<span class="sourceLineNo">292</span>            request.setComplete(false);<a name="line.292"></a>
+<span class="sourceLineNo">293</span>            request.setAborted(false);<a name="line.293"></a>
+<span class="sourceLineNo">294</span>            break;<a name="line.294"></a>
+<span class="sourceLineNo">295</span>        case MsrpConstants.FLAG_COMPLETE:<a name="line.295"></a>
+<span class="sourceLineNo">296</span>            request.setComplete(true);<a name="line.296"></a>
+<span class="sourceLineNo">297</span>            break;<a name="line.297"></a>
+<span class="sourceLineNo">298</span>        case MsrpConstants.FLAG_ABORT:<a name="line.298"></a>
+<span class="sourceLineNo">299</span>            request.setAborted(true);<a name="line.299"></a>
+<span class="sourceLineNo">300</span>            break;<a name="line.300"></a>
+<span class="sourceLineNo">301</span>        default:<a name="line.301"></a>
+<span class="sourceLineNo">302</span>            throw new RuntimeException("internal error");<a name="line.302"></a>
+<span class="sourceLineNo">303</span>        }<a name="line.303"></a>
+<span class="sourceLineNo">304</span><a name="line.304"></a>
+<span class="sourceLineNo">305</span>        // Done<a name="line.305"></a>
+<span class="sourceLineNo">306</span>        return true;<a name="line.306"></a>
+<span class="sourceLineNo">307</span>    }<a name="line.307"></a>
+<span class="sourceLineNo">308</span><a name="line.308"></a>
+<span class="sourceLineNo">309</span>    // Input required path header byte, returning true if header is complete<a name="line.309"></a>
+<span class="sourceLineNo">310</span>    private boolean inputPathHeaderByte(List&lt;MsrpUri&gt; uriList, String name, byte b) throws ProtocolException {<a name="line.310"></a>
+<span class="sourceLineNo">311</span><a name="line.311"></a>
+<span class="sourceLineNo">312</span>        // Get complete path(s)<a name="line.312"></a>
+<span class="sourceLineNo">313</span>        final String paths = this.inputRequiredHeaderByte(name, b);<a name="line.313"></a>
+<span class="sourceLineNo">314</span>        if (paths == null)<a name="line.314"></a>
+<span class="sourceLineNo">315</span>            return false;<a name="line.315"></a>
+<span class="sourceLineNo">316</span><a name="line.316"></a>
+<span class="sourceLineNo">317</span>        // Must be at least one<a name="line.317"></a>
+<span class="sourceLineNo">318</span>        if (paths.length() == 0)<a name="line.318"></a>
+<span class="sourceLineNo">319</span>            throw new ProtocolException("invalid empty `" + name + "' header");<a name="line.319"></a>
+<span class="sourceLineNo">320</span><a name="line.320"></a>
+<span class="sourceLineNo">321</span>        // Parse path into URI's<a name="line.321"></a>
+<span class="sourceLineNo">322</span>        int end;<a name="line.322"></a>
+<span class="sourceLineNo">323</span>        for (int start = 0; start &lt; paths.length(); start = end) {<a name="line.323"></a>
+<span class="sourceLineNo">324</span>            if ((end = paths.indexOf(' ', start)) == -1)<a name="line.324"></a>
+<span class="sourceLineNo">325</span>                end = paths.length();<a name="line.325"></a>
+<span class="sourceLineNo">326</span>            final String uri = paths.substring(start, end);<a name="line.326"></a>
+<span class="sourceLineNo">327</span>            if (uriList.size() &gt;= this.maxPathUris)<a name="line.327"></a>
+<span class="sourceLineNo">328</span>                throw new ProtocolException("too many URI's in `" + name + "' header (maximum " + this.maxPathUris + ")");<a name="line.328"></a>
+<span class="sourceLineNo">329</span>            try {<a name="line.329"></a>
+<span class="sourceLineNo">330</span>                uriList.add(new MsrpUri(uri));<a name="line.330"></a>
+<span class="sourceLineNo">331</span>            } catch (URISyntaxException e) {<a name="line.331"></a>
+<span class="sourceLineNo">332</span>                throw new ProtocolException("invalid URI " + Util.quotrunc(uri) + " in `" + name + "' header", e);<a name="line.332"></a>
+<span class="sourceLineNo">333</span>            }<a name="line.333"></a>
+<span class="sourceLineNo">334</span>        }<a name="line.334"></a>
+<span class="sourceLineNo">335</span><a name="line.335"></a>
+<span class="sourceLineNo">336</span>        // Done<a name="line.336"></a>
+<span class="sourceLineNo">337</span>        return true;<a name="line.337"></a>
+<span class="sourceLineNo">338</span>    }<a name="line.338"></a>
+<span class="sourceLineNo">339</span><a name="line.339"></a>
+<span class="sourceLineNo">340</span>    // Input required header byte, returning header value if header is complete<a name="line.340"></a>
+<span class="sourceLineNo">341</span>    private String inputRequiredHeaderByte(String name, byte b) throws ProtocolException {<a name="line.341"></a>
+<span class="sourceLineNo">342</span>        final Header header = this.inputHeaderByteForHeader(b);<a name="line.342"></a>
+<span class="sourceLineNo">343</span>        if (header == null)<a name="line.343"></a>
+<span class="sourceLineNo">344</span>            return null;<a name="line.344"></a>
+<span class="sourceLineNo">345</span>        if (header == HEADER_EOF)<a name="line.345"></a>
+<span class="sourceLineNo">346</span>            throw new ProtocolException("missing required `" + name + "' header");<a name="line.346"></a>
+<span class="sourceLineNo">347</span>        if (!header.getName().equalsIgnoreCase(name)) {<a name="line.347"></a>
+<span class="sourceLineNo">348</span>            throw new ProtocolException("expected required `" + name + "' header but found "<a name="line.348"></a>
+<span class="sourceLineNo">349</span>              + Util.quotrunc(header.getName()) + " header instead");<a name="line.349"></a>
+<span class="sourceLineNo">350</span>        }<a name="line.350"></a>
+<span class="sourceLineNo">351</span>        return header.getValue();<a name="line.351"></a>
+<span class="sourceLineNo">352</span>    }<a name="line.352"></a>
+<span class="sourceLineNo">353</span><a name="line.353"></a>
+<span class="sourceLineNo">354</span>    // Input header byte, returning null if incomplete, header if complete, or HEADER_EOF if none remain (and setting this.body)<a name="line.354"></a>
+<span class="sourceLineNo">355</span>    private Header inputHeaderByteForHeader(byte b) throws ProtocolException {<a name="line.355"></a>
+<span class="sourceLineNo">356</span><a name="line.356"></a>
+<span class="sourceLineNo">357</span>        // Read complete header line<a name="line.357"></a>
+<span class="sourceLineNo">358</span>        final String line = this.lineParser.inputLineByte(b);<a name="line.358"></a>
+<span class="sourceLineNo">359</span>        if (line == null)<a name="line.359"></a>
+<span class="sourceLineNo">360</span>            return null;<a name="line.360"></a>
+<span class="sourceLineNo">361</span><a name="line.361"></a>
+<span class="sourceLineNo">362</span>        // End line?<a name="line.362"></a>
+<span class="sourceLineNo">363</span>        assert this.endLine != null;<a name="line.363"></a>
+<span class="sourceLineNo">364</span>        if (line.startsWith(this.endLine) &amp;&amp; line.length() == this.endLine.length() + 1) {<a name="line.364"></a>
+<span class="sourceLineNo">365</span>            final char flag = line.charAt(this.endLine.length());<a name="line.365"></a>
+<span class="sourceLineNo">366</span>            if (flag != (char)MsrpConstants.FLAG_COMPLETE)<a name="line.366"></a>
+<span class="sourceLineNo">367</span>                throw new ProtocolException("invalid end-line flag byte `" + flag + "' in message without body");<a name="line.367"></a>
+<span class="sourceLineNo">368</span>            this.body = null;<a name="line.368"></a>
+<span class="sourceLineNo">369</span>            return HEADER_EOF;<a name="line.369"></a>
+<span class="sourceLineNo">370</span>        }<a name="line.370"></a>
+<span class="sourceLineNo">371</span><a name="line.371"></a>
+<span class="sourceLineNo">372</span>        // Blank line?<a name="line.372"></a>
+<span class="sourceLineNo">373</span>        if (line.length() == 0) {<a name="line.373"></a>
+<span class="sourceLineNo">374</span>            this.body = new ByteArrayOutputStream();<a name="line.374"></a>
+<span class="sourceLineNo">375</span>            return HEADER_EOF;<a name="line.375"></a>
+<span class="sourceLineNo">376</span>        }<a name="line.376"></a>
+<span class="sourceLineNo">377</span><a name="line.377"></a>
+<span class="sourceLineNo">378</span>        // Parse header<a name="line.378"></a>
+<span class="sourceLineNo">379</span>        final Matcher matcher = Pattern.compile(Util.HEADER_REGEX).matcher(line);<a name="line.379"></a>
+<span class="sourceLineNo">380</span>        if (!matcher.matches())<a name="line.380"></a>
+<span class="sourceLineNo">381</span>            throw new ProtocolException("invalid header line " + Util.quotrunc(line));<a name="line.381"></a>
+<span class="sourceLineNo">382</span>        return new Header(matcher.group(1), matcher.group(2));<a name="line.382"></a>
+<span class="sourceLineNo">383</span>    }<a name="line.383"></a>
+<span class="sourceLineNo">384</span><a name="line.384"></a>
+<span class="sourceLineNo">385</span>// Parse states<a name="line.385"></a>
 <span class="sourceLineNo">386</span><a name="line.386"></a>
-<span class="sourceLineNo">387</span>// Parse states<a name="line.387"></a>
-<span class="sourceLineNo">388</span><a name="line.388"></a>
-<span class="sourceLineNo">389</span>    private enum State {<a name="line.389"></a>
-<span class="sourceLineNo">390</span>        FIRST_LINE,<a name="line.390"></a>
-<span class="sourceLineNo">391</span>        TO_PATH,<a name="line.391"></a>
-<span class="sourceLineNo">392</span>        FROM_PATH,<a name="line.392"></a>
-<span class="sourceLineNo">393</span>        HEADER,<a name="line.393"></a>
-<span class="sourceLineNo">394</span>        BODY_CONTENT;<a name="line.394"></a>
-<span class="sourceLineNo">395</span>    }<a name="line.395"></a>
-<span class="sourceLineNo">396</span>}<a name="line.396"></a>
-<span class="sourceLineNo">397</span><a name="line.397"></a>
+<span class="sourceLineNo">387</span>    private enum State {<a name="line.387"></a>
+<span class="sourceLineNo">388</span>        FIRST_LINE,<a name="line.388"></a>
+<span class="sourceLineNo">389</span>        TO_PATH,<a name="line.389"></a>
+<span class="sourceLineNo">390</span>        FROM_PATH,<a name="line.390"></a>
+<span class="sourceLineNo">391</span>        HEADER,<a name="line.391"></a>
+<span class="sourceLineNo">392</span>        BODY_CONTENT;<a name="line.392"></a>
+<span class="sourceLineNo">393</span>    }<a name="line.393"></a>
+<span class="sourceLineNo">394</span>}<a name="line.394"></a>
+<span class="sourceLineNo">395</span><a name="line.395"></a>
 
 
 

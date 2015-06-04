@@ -445,6 +445,7 @@ public class Msrp {
             throw new IllegalArgumentException("null service");
         if (this.selector == null)
             return null;
+        this.wakeup();                                          // avoids blocking in channel.register()
         return channel.register(this.selector, 0, service);
     }
 

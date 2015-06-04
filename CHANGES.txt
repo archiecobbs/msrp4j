@@ -1,4 +1,8 @@
-Version 1.0.18 Releaed January 15, 2014
+Version 1.1.0 Released June 4, 2015
+
+    - Fix transient deadlock bug
+
+Version 1.0.18 Released January 15, 2014
 
     - Fix NPE bug when listen port not explicitly configured
     - Ensure failure notification issued if no response to a transaction

@@ -7,17 +7,17 @@
   xmlns:ivy="urn:org.apache.ivy.ant">
 
     <!-- Configure build & stuff -->
-    <property name="library.version" value="1.0"/>
     <property name="javac.compiler.flags" value="-Xlint:all"/>
 
     <!-- Import generic build macros -->
     <import file="${basedir}/src/build/macros.xml"/>
 
-    <!-- Determine SVN revision and full version -->
-    <dellroad:svnrevision property="svn.revision"/>
-    <property name="full.version" value="${library.version}.${svn.revision}"/>
+    <!-- Determine version -->
+    <exec outputproperty="library.version" executable="git" logError="true" failonerror="true">
+        <arg value="describe"/>
+    </exec>
     <echo message=""/>
-    <echo message="Version is ${library.version}.${svn.revision}"/>
+    <echo message="Version is ${library.version}"/>
     <echo message=""/>
 
     <!-- Classpath targets -->
@@ -38,7 +38,7 @@
         <copy todir="build/resources">
             <fileset dir="src/properties" includes="${ant.project.name}.properties"/>
             <filterset>
-                <filter token="VERSION" value="${full.version}"/>
+                <filter token="VERSION" value="${library.version}"/>
             </filterset>
         </copy>
         <property name="resources.completed" value="true"/>
@@ -47,8 +47,8 @@
     <!-- Main JAR -->
     <target name="jar" depends="javac, resources" unless="jar.completed" description="Build main JAR">
         <mkdir dir="build/dist"/>
-        <delete file="build/dist/${ant.project.name}-${full.version}.jar"/>
-        <jar destfile="build/dist/${ant.project.name}-${full.version}.jar">
+        <delete file="build/dist/${ant.project.name}-${library.version}.jar"/>
+        <jar destfile="build/dist/${ant.project.name}-${library.version}.jar">
             <fileset dir="build/classes"/>
             <fileset dir="build/resources"/>
         </jar>
@@ -68,15 +68,14 @@
             <fileset dir="build/cli/libs" includes="*.jar"/>
         </unzip>
         <copy file="src/xml/log4j-cli.xml" toFile="build/cli/log4j.xml"/>
-        <delete file="build/dist/${ant.project.name}-cli-${full.version}.jar"/>
-        <jar destfile="build/dist/${ant.project.name}-cli-${full.version}.jar">
+        <delete file="build/dist/${ant.project.name}-cli-${library.version}.jar"/>
+        <jar destfile="build/dist/${ant.project.name}-cli-${library.version}.jar">
             <fileset dir="build/classes"/>
             <fileset dir="build/resources"/>
             <fileset dir="build/cli" excludes="libs/**/*"/>
             <manifest>
                 <attribute name="Main-Class" value="org.dellroad.msrp.Main"/>
                 <attribute name="Implementation-Version" value="${library.version}"/>
-                <attribute name="SCM-Revision" value="${svn.revision}"/>
             </manifest>
         </jar>
         <mkdir dir="build/cli"/>
@@ -86,12 +85,12 @@
     <!-- All distribution files -->
     <target name="jars" depends="jar, clijar, javadoc" unless="jars.completed" description="Build all JARs">
         <mkdir dir="build/dist"/>
-        <delete file="build/dist/${ant.project.name}-sources-${full.version}.zip"/>
-        <zip destfile="build/dist/${ant.project.name}-sources-${full.version}.zip">
+        <delete file="build/dist/${ant.project.name}-sources-${library.version}.zip"/>
+        <zip destfile="build/dist/${ant.project.name}-sources-${library.version}.zip">
             <fileset dir="src/java" includes="**/*"/>
         </zip>
-        <delete file="build/dist/${ant.project.name}-javadocs-${full.version}.zip"/>
-        <zip destfile="build/dist/${ant.project.name}-javadocs-${full.version}.zip">
+        <delete file="build/dist/${ant.project.name}-javadocs-${library.version}.zip"/>
+        <zip destfile="build/dist/${ant.project.name}-javadocs-${library.version}.zip">
             <fileset dir="build/reports/javadoc" includes="**/*"/>
         </zip>
         <property name="jars.completed" value="true"/>
@@ -104,7 +103,7 @@
         <copy todir="build/javadoc">
             <fileset dir="src/java/org/dellroad/msrp" includes="overview.html"/>
             <filterset>
-                <filter token="VERSION" value="${full.version}"/>
+                <filter token="VERSION" value="${library.version}"/>
             </filterset>
         </copy>
         <dellroad:javadoc overview="build/javadoc/overview.html">

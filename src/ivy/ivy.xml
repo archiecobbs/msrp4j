@@ -19,9 +19,9 @@
     </configurations>
 
     <dependencies>
-        <dependency force="true" org="org.dellroad" name="dellroad-stuff" rev="1.0.946" conf="base,cli->core"/>
+        <dependency force="true" org="org.dellroad" name="dellroad-stuff" rev="1.1.1" conf="base,cli->core"/>
         <dependency force="true" org="org.sonatype.jline" name="jline" rev="2.12" conf="base,cli->default"/>
-        <dependency force="true" org="org.slf4j" name="slf4j" rev="1.7.2" conf="base->default; cli,test->log4j"/>
+        <dependency force="true" org="org.slf4j" name="slf4j" rev="1.7+" conf="base->default; cli,test->log4j"/>
         <dependency force="true" org="org.testng" name="testng" rev="6.8+" conf="test->default"/>
     </dependencies>
 

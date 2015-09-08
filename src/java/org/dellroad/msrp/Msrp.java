@@ -64,9 +64,14 @@ public class Msrp {
      */
     public static final long DEFAULT_CONNECT_TIMEOUT = 20 * 1000L;      // 20 sec
 
+    // Maximum age and quantity of "orphans" (unrecognized MsrpRequest's) to hang on to
+    private static final int MAX_ORPHANS = 100;
+    private static final int MAX_ORPHAN_HOLD_TIME = 500;                // 500 ms
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final TreeMap<MsrpUri, Session> sessionMap = new TreeMap<>(MsrpUriComparator.INSTANCE);
     private final HashSet<Connection> connections = new HashSet<>();
+    private final HashSet<Orphan> orphans = new HashSet<>(MAX_ORPHANS);
 
     private InetSocketAddress listenAddress;
     private int maxSessions = DEFAULT_MAX_SESSIONS;
@@ -297,8 +302,11 @@ public class Msrp {
             this.log.debug(this + " created new session " + session);
 
         // If session is passive, we wait for the remote side to connect to us before doing anything else
-        if (!active)
+        if (!active) {
+            if (!this.orphans.isEmpty())
+                this.wakeup();                              // an orphan might be waiting for this session
             return session;
+        }
 
         // Re-use existing connection to this endpoint if one already exists
         for (Connection connection : this.connections) {
@@ -389,10 +397,21 @@ public class Msrp {
         final MsrpUri localURI = message.getHeaders().getToPath().get(0);
         final Session session = this.sessionMap.get(localURI);
         if (session == null) {
-            if (message instanceof MsrpRequest) {
-                connection.write(Session.createMsrpResponse((MsrpRequest)message,
+
+            // Ignore non-requests
+            if (!(message instanceof MsrpRequest))
+                return;
+            final MsrpRequest request = (MsrpRequest)message;
+
+            // Too many orphans?
+            if (this.orphans.size() >= MAX_ORPHANS) {
+                connection.write(Session.createMsrpResponse(request,
                   MsrpConstants.RESPONSE_CODE_SESSION_DOES_NOT_EXIST, "Session does not exist"));
+                return;
             }
+
+            // We have an orphan; let's hang on to it for a while before giving up
+            this.orphans.add(new Orphan(connection, request));
             return;
         }
 
@@ -424,6 +443,10 @@ public class Msrp {
                 i.remove();
                 session.close(cause);
             }
+        }
+        for (Iterator<Orphan> i = this.orphans.iterator(); i.hasNext(); ) {
+            if (i.next().getConnection().equals(connection))
+                i.remove();
         }
         this.connections.remove(connection);
         this.wakeup();
@@ -587,6 +610,46 @@ public class Msrp {
 
                 // Perform my own housekeeping
                 this.selectForAccept(this.connections.size() < this.maxSessions);
+                for (Orphan orphan : new ArrayList<Orphan>(this.orphans)) {
+                    final MsrpRequest request = orphan.getRequest();
+                    final Connection connection = orphan.getConnection();
+
+                    // Check orphan timeout
+                    if (orphan.getAge() >= MAX_ORPHAN_HOLD_TIME) {
+                        this.orphans.remove(orphan);
+                        try {
+                            connection.write(Session.createMsrpResponse(request,
+                              MsrpConstants.RESPONSE_CODE_SESSION_DOES_NOT_EXIST, "Session does not exist"));
+                        } catch (IOException e) {
+                            if (this.log.isDebugEnabled())
+                                this.log.debug("MSRP I/O error from " + connection, e);
+                            connection.close(e);
+                        } catch (Exception e) {
+                            this.log.error("MSRP error from " + connection, e);
+                            connection.close(e);
+                        }
+                        continue;
+                    }
+
+                    // Check if any outstanding orphans match a newly created session
+                    final MsrpUri localURI = request.getHeaders().getToPath().get(0);
+                    final Session session = this.sessionMap.get(localURI);
+                    if (session != null) {
+                        this.orphans.remove(orphan);
+                        if (!this.connections.contains(connection))         // should never happen but just to be safe
+                            continue;
+                        try {
+                            this.handleMessage(connection, request);
+                        } catch (IOException e) {
+                            if (this.log.isDebugEnabled())
+                                this.log.debug("MSRP I/O error from " + connection, e);
+                            connection.close(e);
+                        } catch (Exception e) {
+                            this.log.error("MSRP error from " + connection, e);
+                            connection.close(e);
+                        }
+                    }
+                }
             }
         }
     }
@@ -639,6 +702,35 @@ public class Msrp {
             }
             if (Msrp.this.log.isDebugEnabled())
                 Msrp.this.log.debug(this + " exiting");
+        }
+    }
+
+// Orphan
+
+    private static class Orphan {
+
+        private final Connection connection;
+        private final MsrpRequest request;
+        private final long timestamp = System.nanoTime();
+
+        Orphan(Connection connection, MsrpRequest request) {
+            assert connection != null;
+            assert request != null;
+            this.connection = connection;
+            this.request = request;
+        }
+
+        public Connection getConnection() {
+            return this.connection;
+        }
+
+        public MsrpRequest getRequest() {
+            return this.request;
+        }
+
+        // Get age in milliseconds
+        public long getAge() {
+            return (System.nanoTime() - this.timestamp) / 1000000L;
         }
     }
 }

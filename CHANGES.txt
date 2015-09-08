@@ -1,3 +1,8 @@
+
+Version 1.1.1
+
+    - Handle race between createSession() and receipt of first message
+
 Version 1.1.0 Released June 4, 2015
 
     - Fix transient deadlock bug

@@ -78,6 +78,7 @@ public class Msrp {
     private long maxContentLength = MsrpInputParser.DEFAULT_MAX_CONTENT_LENGTH;
     private long maxIdleTime = DEFAULT_MAX_IDLE_TIME;
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+    private boolean matchSessionId = true;
 
     private ServerSocketChannel serverSocketChannel;
     private SelectionKey selectionKey;
@@ -157,6 +158,21 @@ public class Msrp {
     }
     public synchronized void setConnectTimeout(long connectTimeout) {
         this.connectTimeout = connectTimeout;
+    }
+
+    /**
+     * Get whether to match by session ID only (instead of the entire URL) when matching messages to sessions.
+     *
+     * <p>
+     * Default is true.
+     *
+     * @see <a href="https://tools.ietf.org/html/draft-ietf-simple-msrp-sessmatch-10">Session Matching Update for the Message Session Relay Protocol (MSRP)</a>
+     */
+    public synchronized boolean isMatchSessionId() {
+        return this.matchSessionId;
+    }
+    public synchronized void setMatchSessionId(boolean matchSessionId) {
+        this.matchSessionId = matchSessionId;
     }
 
     /**
@@ -395,7 +411,7 @@ public class Msrp {
 
         // Find session
         final MsrpUri localURI = message.getHeaders().getToPath().get(0);
-        final Session session = this.sessionMap.get(localURI);
+        final Session session = this.findSession(localURI);
         if (session == null) {
 
             // Ignore non-requests
@@ -633,7 +649,7 @@ public class Msrp {
 
                     // Check if any outstanding orphans match a newly created session
                     final MsrpUri localURI = request.getHeaders().getToPath().get(0);
-                    final Session session = this.sessionMap.get(localURI);
+                    final Session session = this.findSession(localURI);
                     if (session != null) {
                         this.orphans.remove(orphan);
                         if (!this.connections.contains(connection))         // should never happen but just to be safe
@@ -652,6 +668,19 @@ public class Msrp {
                 }
             }
         }
+    }
+
+    private Session findSession(MsrpUri localURI) {
+        assert localURI != null;
+        Session session = this.sessionMap.get(localURI);
+        if (session != null || !this.matchSessionId)
+            return null;
+        final String sessionId = localURI.getSessionId();
+        for (Session session2 : this.sessionMap.values()) {
+            if (session2.getLocalUri().getSessionId().equals(sessionId))
+                return session2;
+        }
+        return null;
     }
 
     private static String dbg(Iterable<? extends SelectionKey> keys) {

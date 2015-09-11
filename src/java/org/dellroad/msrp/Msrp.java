@@ -674,7 +674,7 @@ public class Msrp {
         assert localURI != null;
         Session session = this.sessionMap.get(localURI);
         if (session != null || !this.matchSessionId)
-            return null;
+            return session;
         final String sessionId = localURI.getSessionId();
         for (Session session2 : this.sessionMap.values()) {
             if (session2.getLocalUri().getSessionId().equals(sessionId))

@@ -1,5 +1,4 @@
-
-Version 1.1.1
+Version 1.1.1 Released October 27, 2015
 
     - Handle race between createSession() and receipt of first message
     - Add support for matching sessions by session ID only

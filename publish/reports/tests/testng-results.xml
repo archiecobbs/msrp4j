@@ -2,12 +2,12 @@
 <testng-results skipped="0" failed="0" total="12" passed="12">
   <reporter-output>
   </reporter-output>
-  <suite name="Unit Test Suite" duration-ms="63" started-at="2015-06-04T21:18:31Z" finished-at="2015-06-04T21:18:31Z">
+  <suite name="Unit Test Suite" duration-ms="79" started-at="2015-10-27T16:38:08Z" finished-at="2015-10-27T16:38:08Z">
     <groups>
     </groups>
-    <test name="Unit Tests" duration-ms="63" started-at="2015-06-04T21:18:31Z" finished-at="2015-06-04T21:18:31Z">
+    <test name="Unit Tests" duration-ms="79" started-at="2015-10-27T16:38:08Z" finished-at="2015-10-27T16:38:08Z">
       <class name="org.dellroad.msrp.msg.MsrpMessageParseTest">
-        <test-method status="PASS" signature="seedRandom(java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.MsrpMessageParseTest@6f0f305b]" name="seedRandom" is-config="true" duration-ms="0" started-at="2015-06-04T16:18:31Z" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="seedRandom(java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.MsrpMessageParseTest@43d0f0e]" name="seedRandom" is-config="true" duration-ms="0" started-at="2015-10-27T11:38:08Z" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -18,7 +18,7 @@
           <reporter-output>
           </reporter-output>
         </test-method> <!-- seedRandom -->
-        <test-method status="PASS" signature="testInvalid(java.lang.String, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.MsrpMessageParseTest@6f0f305b]" name="testInvalid" duration-ms="3" started-at="2015-06-04T16:18:31Z" data-provider="invalidCases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testInvalid(java.lang.String, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.MsrpMessageParseTest@43d0f0e]" name="testInvalid" duration-ms="3" started-at="2015-10-27T11:38:08Z" data-provider="invalidCases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -34,7 +34,7 @@
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testInvalid -->
-        <test-method status="PASS" signature="testInvalid(java.lang.String, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.MsrpMessageParseTest@6f0f305b]" name="testInvalid" duration-ms="6" started-at="2015-06-04T16:18:31Z" data-provider="invalidCases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testInvalid(java.lang.String, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.MsrpMessageParseTest@43d0f0e]" name="testInvalid" duration-ms="9" started-at="2015-10-27T11:38:08Z" data-provider="invalidCases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -50,7 +50,7 @@
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testInvalid -->
-        <test-method status="PASS" signature="testInvalid(java.lang.String, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.MsrpMessageParseTest@6f0f305b]" name="testInvalid" duration-ms="2" started-at="2015-06-04T16:18:31Z" data-provider="invalidCases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testInvalid(java.lang.String, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.MsrpMessageParseTest@43d0f0e]" name="testInvalid" duration-ms="3" started-at="2015-10-27T11:38:08Z" data-provider="invalidCases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -66,7 +66,7 @@
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testInvalid -->
-        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.Class)[pri:0, instance:org.dellroad.msrp.msg.MsrpMessageParseTest@6f0f305b]" name="testValid" duration-ms="7" started-at="2015-06-04T16:18:31Z" data-provider="validCases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.Class)[pri:0, instance:org.dellroad.msrp.msg.MsrpMessageParseTest@43d0f0e]" name="testValid" duration-ms="8" started-at="2015-10-27T11:38:08Z" data-provider="validCases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -84,7 +84,7 @@
         </test-method> <!-- testValid -->
       </class> <!-- org.dellroad.msrp.msg.MsrpMessageParseTest -->
       <class name="org.dellroad.msrp.msg.BoundaryInputStreamTest">
-        <test-method status="PASS" signature="seedRandom(java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5497048e]" name="seedRandom" is-config="true" duration-ms="12" started-at="2015-06-04T16:18:31Z" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="seedRandom(java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5bcf4b61]" name="seedRandom" is-config="true" duration-ms="15" started-at="2015-10-27T11:38:08Z" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -95,7 +95,7 @@
           <reporter-output>
           </reporter-output>
         </test-method> <!-- seedRandom -->
-        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5497048e]" name="testValid" duration-ms="11" started-at="2015-06-04T16:18:31Z" data-provider="cases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5bcf4b61]" name="testValid" duration-ms="16" started-at="2015-10-27T11:38:08Z" data-provider="cases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -128,7 +128,7 @@ here's some junk after the boundary
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testValid -->
-        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5497048e]" name="testValid" duration-ms="1" started-at="2015-06-04T16:18:31Z" data-provider="cases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5bcf4b61]" name="testValid" duration-ms="2" started-at="2015-10-27T11:38:08Z" data-provider="cases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -157,7 +157,7 @@ here's some junk after the boundary
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testValid -->
-        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5497048e]" name="testValid" duration-ms="2" started-at="2015-06-04T16:18:31Z" data-provider="cases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5bcf4b61]" name="testValid" duration-ms="2" started-at="2015-10-27T11:38:08Z" data-provider="cases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -186,7 +186,7 @@ here's some junk after the boundary
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testValid -->
-        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5497048e]" name="testValid" duration-ms="1" started-at="2015-06-04T16:18:31Z" data-provider="cases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5bcf4b61]" name="testValid" duration-ms="3" started-at="2015-10-27T11:38:08Z" data-provider="cases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -215,7 +215,7 @@ here's some junk after the boundary
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testValid -->
-        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5497048e]" name="testValid" duration-ms="1" started-at="2015-06-04T16:18:31Z" data-provider="cases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5bcf4b61]" name="testValid" duration-ms="1" started-at="2015-10-27T11:38:08Z" data-provider="cases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -247,7 +247,7 @@ here's some junk after the boundary
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testValid -->
-        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5497048e]" name="testValid" duration-ms="1" started-at="2015-06-04T16:18:31Z" data-provider="cases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5bcf4b61]" name="testValid" duration-ms="1" started-at="2015-10-27T11:38:08Z" data-provider="cases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -276,7 +276,7 @@ here's some junk after the boundary
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testValid -->
-        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5497048e]" name="testValid" duration-ms="0" started-at="2015-06-04T16:18:31Z" data-provider="cases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5bcf4b61]" name="testValid" duration-ms="1" started-at="2015-10-27T11:38:08Z" data-provider="cases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>
@@ -308,7 +308,7 @@ here's some junk after the boundary
           <reporter-output>
           </reporter-output>
         </test-method> <!-- testValid -->
-        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5497048e]" name="testValid" duration-ms="1" started-at="2015-06-04T16:18:31Z" data-provider="cases" finished-at="2015-06-04T16:18:31Z">
+        <test-method status="PASS" signature="testValid(java.lang.String, java.lang.String, int, char, java.lang.String)[pri:0, instance:org.dellroad.msrp.msg.BoundaryInputStreamTest@5bcf4b61]" name="testValid" duration-ms="0" started-at="2015-10-27T11:38:08Z" data-provider="cases" finished-at="2015-10-27T11:38:08Z">
           <params>
             <param index="0">
               <value>

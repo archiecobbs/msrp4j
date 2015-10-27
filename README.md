@@ -2,6 +2,6 @@
 
 **msrp4j** implements the actual MSRP protocol itself. The setup and/or negotiation of MSRP sessions must be handled by other means; this is typically done via SIP.
 
-**msrp4j** also includes an [executable command line test client](https://s3.amazonaws.com/archie-public/msrp4j/msrp4j-cli-1.0.18.jar).
+**msrp4j** also includes an executable command line test client.
 
 Documentation is provided by API Javadocs; start [here](http://archiecobbs.github.io/msrp4j/publish/reports/javadoc/index.html?org/dellroad/msrp/Msrp.html).

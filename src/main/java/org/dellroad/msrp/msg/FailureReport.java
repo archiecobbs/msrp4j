@@ -17,7 +17,7 @@ public enum FailureReport {
 
     private final String headerValue;
 
-    private FailureReport(String headerValue) {
+    FailureReport(String headerValue) {
         this.headerValue = headerValue;
     }
 

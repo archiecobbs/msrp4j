@@ -716,7 +716,7 @@ public class Msrp {
 
     private class ServiceThread extends Thread {
 
-        public ServiceThread() {
+        ServiceThread() {
             super("MSRP Service Thread for " + Msrp.this);
         }
 

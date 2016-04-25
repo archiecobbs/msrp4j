@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<!-- $Id$ -->
+<!-- $Id: checkstyle.xml 976 2015-05-30 18:49:08Z archie.cobbs $ -->
 <!DOCTYPE module PUBLIC
     "-//Puppy Crawl//DTD Check Configuration 1.1//EN"
     "http://www.puppycrawl.com/dtds/configuration_1_1.dtd">
@@ -231,7 +231,7 @@
             <property name="severity" value="warning"/>
         </module>
 <!--    <module name="ModifiedControlVariable"/> -->
-        <module name="RedundantThrows"/>
+<!--    <module name="RedundantThrows"/> REMOVED -->
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
 <!--    <module name="StringLiteralEquality"/> -->

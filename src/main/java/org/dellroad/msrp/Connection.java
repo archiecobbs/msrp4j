@@ -38,7 +38,7 @@ class Connection {
      * @param endpoint remote endpoint
      * @throws IllegalArgumentException if {@code endpoint} is null
      */
-    public Connection(Msrp msrp, Endpoint endpoint, SocketChannel socketChannel) throws IOException {
+    Connection(Msrp msrp, Endpoint endpoint, SocketChannel socketChannel) throws IOException {
         if (msrp == null)
             throw new IllegalArgumentException("null msrp");
         if (endpoint == null)

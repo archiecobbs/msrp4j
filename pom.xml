@@ -102,8 +102,19 @@ Documentation is provided by API Javadocs.</description>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.6</version>
+        <configuration>
+            <archive>
+                <manifest>
+                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                </manifest>
+                <manifestEntries>
+                    <Implementation-Build>${project.version}</Implementation-Build>
+                    <Implementation-Artifact-Id>${project.artifactId}</Implementation-Artifact-Id>
+                    <Build-Number>${project.version}</Build-Number>
+                </manifestEntries>
+            </archive>
+        </configuration>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>

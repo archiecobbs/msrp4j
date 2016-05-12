@@ -4,4 +4,6 @@
 
 **msrp4j** also includes an executable command line test client.
 
-Documentation is provided by API Javadocs; start [here](http://archiecobbs.github.io/msrp4j/publish/reports/javadoc/index.html?org/dellroad/msrp/Msrp.html).
+Documentation is provided by [API Javadocs](http://archiecobbs.github.io/msrp4j/site/apidocs/index.html?org/dellroad/msrp/Msrp.html).
+
+There is also a [Maven Site](http://archiecobbs.github.io/msrp4j/site/index.html).

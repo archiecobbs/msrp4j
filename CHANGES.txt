@@ -1,3 +1,7 @@
+Version 2.0.0 Released May 12, 2016
+
+    - Convert build to Maven
+
 Version 1.1.1 Released October 27, 2015
 
     - Handle race between createSession() and receipt of first message

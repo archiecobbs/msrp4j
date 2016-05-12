@@ -125,6 +125,7 @@
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
         <module name="ExecutableStatementCount">
+            <property name="max" value="500"/>
             <property name="severity" value="info"/>
         </module>
         <module name="LineLength">
@@ -132,12 +133,15 @@
             <property name="ignorePattern" value="(^import)|(^ *\*)"/>
         </module>
         <module name="MethodLength">
+            <property name="max" value="500"/>
             <property name="severity" value="info"/>
         </module>
         <module name="ParameterNumber">
+            <property name="max" value="16"/>
             <property name="severity" value="info"/>
         </module>
         <module name="AnonInnerLength">
+            <property name="max" value="500"/>
             <property name="severity" value="info"/>
         </module>
 
@@ -221,11 +225,11 @@
         <module name="InnerAssignment">
             <property name="severity" value="warning"/>
         </module>
--->
         <module name="MagicNumber">
             <property name="severity" value="info"/>
-        <property name="ignoreNumbers" value="0, -1, 1, 2, 127, 255, 65535, 4294967295"/>
+            <property name="ignoreNumbers" value="0, -1, 1, 2, 127, 255, 65535, 4294967295"/>
         </module>
+-->
         <module name="MissingSwitchDefault">
             <property name="severity" value="warning"/>
         </module>

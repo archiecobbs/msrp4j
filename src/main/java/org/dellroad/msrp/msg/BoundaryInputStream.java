@@ -133,6 +133,8 @@ public class BoundaryInputStream extends FilterInputStream {
      * If this instance's {@link #read read()} method has not yet returned -1, then the return
      * value from this method is undefined.
      * </p>
+     *
+     * @return boundary flag byte
      */
     public byte getFlagByte() {
         return this.parser.getFlagByte();

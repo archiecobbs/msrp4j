@@ -81,6 +81,8 @@ public class MsrpHeaders {
 
     /**
      * MIME headers, sorted by header name case-insensitively.
+     *
+     * @return MIME headers
      */
     public SortedSet<Header> getMimeHeaders() {
         return this.mimeHeaders;
@@ -88,6 +90,8 @@ public class MsrpHeaders {
 
     /**
      * Extension headers, sorted by header name case-insensitively.
+     *
+     * @return extension headers
      */
     public SortedSet<Header> getExtensionHeaders() {
         return this.extensionHeaders;

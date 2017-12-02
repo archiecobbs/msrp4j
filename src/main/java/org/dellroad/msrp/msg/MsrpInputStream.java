@@ -45,6 +45,8 @@ public class MsrpInputStream extends FilterInputStream {
 
     /**
      * Get the {@link MsrpInputParser} associated with this instance.
+     *
+     * @return associated parser
      */
     public MsrpInputParser getParser() {
         return this.parser;

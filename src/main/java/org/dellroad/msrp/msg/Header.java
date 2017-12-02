@@ -51,6 +51,8 @@ public class Header {
 
     /**
      * Get the header name.
+     *
+     * @return name of this header
      */
     public String getName() {
         return this.name;
@@ -58,6 +60,8 @@ public class Header {
 
     /**
      * Get the header value.
+     *
+     * @return value of this header
      */
     public String getValue() {
         return this.value;

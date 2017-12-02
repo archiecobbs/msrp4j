@@ -144,6 +144,8 @@ public class MsrpInputParser {
      * This will be true after initial construction, an invocation of {@link #reset},
      * or an invocation {@link #inputMessageByte inputMessageByte()} that returned a non-null value.
      * </p>
+     *
+     * @return true if positioned at a message boundary
      */
     public boolean isBetweenMessages() {
         return this.state == State.FIRST_LINE && this.lineParser.isBetweenLines();

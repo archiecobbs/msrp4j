@@ -45,6 +45,8 @@ public abstract class MsrpMessage {
 
     /**
      * Get the transaction ID associated with this instance.
+     *
+     * @return transaction ID
      */
     public String getTransactionId() {
         return this.transactionId;
@@ -52,6 +54,8 @@ public abstract class MsrpMessage {
 
     /**
      * Get the headers associated with this instance.
+     *
+     * @return headers
      */
     public MsrpHeaders getHeaders() {
         return this.headers;
@@ -61,6 +65,7 @@ public abstract class MsrpMessage {
      * Encode this instance according to RFC 4975.
      *
      * @param withBody true to include the body, or false to omit the body, if any
+     * @return encoded message
      */
     public byte[] encode(boolean withBody) {
         try {
@@ -85,6 +90,8 @@ public abstract class MsrpMessage {
 
     /**
      * Generate a random identifier for use as transaction or message ID.
+     *
+     * @return new random ID
      */
     public static String randomId() {
         return String.format("%016x", ThreadLocalRandom.current().nextLong());
@@ -121,11 +128,15 @@ public abstract class MsrpMessage {
 
     /**
      * Get the end line flag byte.
+     *
+     * @return flag byte
      */
     protected abstract byte getFlagByte();
 
     /**
      * Get the first message line.
+     *
+     * @return first line
      */
     protected abstract String getFirstLine();
 
@@ -136,6 +147,9 @@ public abstract class MsrpMessage {
      * If this message has a body, this method should output CRLF, followed by the binary body content, followed by a final CRLF.
      * If this message has no body, this method should not output anything.
      * <p>
+     *
+     * @param output destination for message
+     * @throws IOException if an I/O error occurs
      */
     protected abstract void writePayload(OutputStream output) throws IOException;
 }

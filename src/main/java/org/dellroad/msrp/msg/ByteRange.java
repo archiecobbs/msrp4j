@@ -102,6 +102,7 @@ public class ByteRange {
      * Create an instance by parsing a {@link String}.
      *
      * @param string byte range expressed as a string
+     * @return corresponding {@link ByteRange}
      * @throws IllegalArgumentException if {@code string} is null or invalid
      */
     public static ByteRange fromString(String string) {

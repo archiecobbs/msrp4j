@@ -123,6 +123,8 @@ public class Msrp {
 
     /**
      * Get the maximum number of allowed sessions. Default is {@value #DEFAULT_MAX_SESSIONS}.
+     *
+     * @return maximum number of simultaneous sessions
      */
     public synchronized int getMaxSessions() {
         return this.maxSessions;
@@ -133,6 +135,8 @@ public class Msrp {
 
     /**
      * Get the maximum allowed content length for incoming messages. Default is {@link MsrpInputParser#DEFAULT_MAX_CONTENT_LENGTH}.
+     *
+     * @return maximum message content size
      */
     public synchronized long getMaxContentLength() {
         return this.maxContentLength;
@@ -143,6 +147,8 @@ public class Msrp {
 
     /**
      * Get the maximum idle time for connections that have no associated sessions. Default is {@value #DEFAULT_MAX_IDLE_TIME}ms.
+     *
+     * @return maximum connection idle time
      */
     public synchronized long getMaxIdleTime() {
         return this.maxIdleTime;
@@ -153,6 +159,8 @@ public class Msrp {
 
     /**
      * Get the outgoing connection timeout in milliseconds. Default is {@value #DEFAULT_CONNECT_TIMEOUT}ms.
+     *
+     * @return connection timeout in milliseconds
      */
     public synchronized long getConnectTimeout() {
         return this.connectTimeout;
@@ -167,6 +175,7 @@ public class Msrp {
      * <p>
      * Default is true.
      *
+     * @return true to match by session ID only, otherwise false
      * @see <a href="https://tools.ietf.org/html/draft-ietf-simple-msrp-sessmatch-10">Session Matching Update for the Message Session Relay Protocol (MSRP)</a>
      */
     public synchronized boolean isMatchSessionId() {

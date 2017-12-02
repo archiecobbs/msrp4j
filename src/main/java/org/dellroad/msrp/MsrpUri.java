@@ -26,6 +26,7 @@ public class MsrpUri {
     /**
      * Constrcuctor.
      *
+     * @param string URI in string form
      * @throws URISyntaxException if {@code string} is not a valid MSRP URI
      */
     public MsrpUri(String string) throws URISyntaxException {
@@ -77,6 +78,8 @@ public class MsrpUri {
 
     /**
      * Get this instance as an {@link URI}.
+     *
+     * @return URI version of this instance
      */
     public URI getUri() {
         return this.uri;
@@ -84,6 +87,8 @@ public class MsrpUri {
 
     /**
      * Determine whether this URI uses TLS.
+     *
+     * @return true if secured by TLS
      */
     public boolean isSecure() {
         return MsrpConstants.MSRPS_SCHEME.equalsIgnoreCase(this.uri.getScheme());
@@ -91,6 +96,8 @@ public class MsrpUri {
 
     /**
      * Get the MSRP session ID specified in this URI.
+     *
+     * @return session ID
      */
     public String getSessionId() {
         return this.sessionId;
@@ -98,6 +105,8 @@ public class MsrpUri {
 
     /**
      * Get the MSRP transport specified in this URI. Currently will always be {@link MsrpConstants#TRANSPORT_TCP}.
+     *
+     * @return session transport
      */
     public String getTransport() {
         return this.transport;
@@ -114,6 +123,8 @@ public class MsrpUri {
 
     /**
      * Create an {@link Endpoint} corresponding to this instance.
+     *
+     * @return corresponding {@link Endpoint}
      */
     public Endpoint toEndpoint() {
         int port = this.uri.getPort();

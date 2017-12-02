@@ -66,6 +66,8 @@ public class Session {
 
     /**
      * Get local URI.
+     *
+     * @return local URI
      */
     public MsrpUri getLocalUri() {
         return this.localURI;
@@ -73,6 +75,8 @@ public class Session {
 
     /**
      * Get remote URI.
+     *
+     * @return remote URI
      */
     public MsrpUri getRemoteUri() {
         return this.remoteURI;

@@ -191,6 +191,8 @@ public class InputChunks {
 
     /**
      * Get message ID.
+     *
+     * @return message ID
      */
     public synchronized String getMessageId() {
         return this.messageId;
@@ -198,6 +200,8 @@ public class InputChunks {
 
     /**
      * Get From path.
+     *
+     * @return from path
      */
     public synchronized List<MsrpUri> getFromPath() {
         return this.fromPath;
@@ -223,6 +227,8 @@ public class InputChunks {
 
     /**
      * Get other headers, sorted by header name case-insensitively.
+     *
+     * @return other headers
      */
     public synchronized SortedSet<Header> getHeaders() {
         return Collections.<Header>unmodifiableSortedSet(this.headers);
@@ -230,6 +236,8 @@ public class InputChunks {
 
     /**
      * Determine whether this instance is complete.
+     *
+     * @return true if complete, otherwise false
      */
     public synchronized boolean isComplete() {
         return this.complete;
@@ -237,6 +245,8 @@ public class InputChunks {
 
     /**
      * Determine whether this instance was aborted.
+     *
+     * @return true if aborted, otherwise false
      */
     public synchronized boolean isAborted() {
         return this.aborted;
@@ -244,6 +254,8 @@ public class InputChunks {
 
     /**
      * Determine whether this message requires a success report.
+     *
+     * @return true if this message requires a success report, otherwise false
      */
     public synchronized boolean isSuccessReport() {
         return this.successReport;
@@ -251,6 +263,8 @@ public class InputChunks {
 
     /**
      * Determine what type of failure reporting this message requires.
+     *
+     * @return failure reporting requirement
      */
     public synchronized FailureReport getFailureReport() {
         return this.failureReport;

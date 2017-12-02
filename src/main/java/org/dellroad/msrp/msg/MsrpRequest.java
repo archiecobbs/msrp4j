@@ -67,6 +67,8 @@ public class MsrpRequest extends MsrpMessage {
 
     /**
      * Get the MSRP request method associated with this instance.
+     *
+     * @return request method
      */
     public String getMethod() {
         return this.method;
@@ -87,6 +89,8 @@ public class MsrpRequest extends MsrpMessage {
     /**
      * Get the whether this message body was flagged as complete.
      * Default is true.
+     *
+     * @return true if message completed
      */
     public boolean isComplete() {
         return this.complete;
@@ -98,6 +102,8 @@ public class MsrpRequest extends MsrpMessage {
     /**
      * Get the whether this message body was flagged as aborted.
      * Default is false.
+     *
+     * @return true if message aborted
      */
     public boolean isAborted() {
         return this.aborted;
@@ -129,6 +135,8 @@ public class MsrpRequest extends MsrpMessage {
     /**
      * Determine if the given header name is a MIME header.
      *
+     * @param name header name
+     * @return true if {@code name} is a MIME header name
      * @throws IllegalArgumentException if {@code name} is null
      */
     public static boolean isMimeHeader(String name) {

@@ -59,6 +59,8 @@ public class MsrpResponse extends MsrpMessage {
 
     /**
      * Get the result string (starting with the response code) from the first line of this response.
+     *
+     * @return result string
      */
     public String getResultString() {
         return String.format("%03d%s", this.code, this.comment != null ? " " + this.comment : "");
@@ -66,6 +68,8 @@ public class MsrpResponse extends MsrpMessage {
 
     /**
      * Get this response's response code and comment as a {@link Status} object.
+     *
+     * @return associated {@link Status}
      */
     public Status toStatus() {
         return new Status(this.code, this.comment);

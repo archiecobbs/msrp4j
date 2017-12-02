@@ -48,6 +48,12 @@ public class OutputChunks implements Closeable, Iterator<MsrpRequest> {
 
     /**
      * Constructor for a message with no body.
+     *
+     * @param localURI local MSRP URI
+     * @param remoteURI remote MSRP URI
+     * @param headers other headers (MIME and/or extension), or null for none
+     * @param reportListener success and/or failure listener, or null for none
+     * @throws IllegalArgumentException if {@code localURI} or {@code remoteURI} is null
      */
     public OutputChunks(MsrpUri localURI, MsrpUri remoteURI, Iterable<? extends Header> headers, ReportListener reportListener) {
         this(localURI, remoteURI, null, -1, null, headers, reportListener);
@@ -96,6 +102,8 @@ public class OutputChunks implements Closeable, Iterator<MsrpRequest> {
 
     /**
      * Get the unique message ID for this message.
+     *
+     * @return message ID
      */
     public String getMessageId() {
         return this.messageId;
@@ -103,6 +111,8 @@ public class OutputChunks implements Closeable, Iterator<MsrpRequest> {
 
     /**
      * Get the associated {@link ReportListener}, if any.
+     *
+     * @return report listener
      */
     public synchronized ReportListener getReportListener() {
         return this.reportListener;
@@ -119,11 +129,18 @@ public class OutputChunks implements Closeable, Iterator<MsrpRequest> {
 
     /**
      * Determine whether this instance has been aborted.
+     *
+     * @return true if aborted, otherwise false
      */
     public synchronized boolean isAborted() {
         return this.aborted;
     }
 
+    /**
+     * Get how long this instance has been idle.
+     *
+     * @return idle time in milliseconds
+     */
     public synchronized long getIdleTime() {
         return (System.nanoTime() - this.timestamp) / 1000000L;
     }

@@ -50,7 +50,6 @@ public class BoundaryInputParser {
      *
      * @param b input byte
      * @return zero or more additional body bytes, or null if the boundary string has been seen
-     * @throws ProtocolException if the body exceeds the maximum allowed length
      */
     public byte[] inputContentByte(byte b) {
 
@@ -108,6 +107,8 @@ public class BoundaryInputParser {
      * This will be true after initial construction, invocation of {@link #reset},
      * or an invocation {@link #inputContentByte inputContentByte()} that returned a null value.
      * </p>
+     *
+     * @return true if positioned on a boundary marker
      */
     public boolean isOnBoundary() {
         return this.boundary;
@@ -128,6 +129,8 @@ public class BoundaryInputParser {
      * If the complete boundary string has not yet been encountered, then the return
      * value from this method is undefined.
      * </p>
+     *
+     * @return boundary string flag byte
      */
     public byte getFlagByte() {
         return this.terminator[this.flagOffset];

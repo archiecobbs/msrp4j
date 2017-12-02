@@ -69,6 +69,8 @@ public class LineInputParser {
      * This will be true after initial construction, invocation of {@link #reset},
      * or an invocation {@link #inputLineByte inputLineByte()} that returned a non-null value.
      * </p>
+     *
+     * @return true if positioned on a line boundary
      */
     public boolean isBetweenLines() {
         return this.buf.size() == 0 && !this.pendingCR;

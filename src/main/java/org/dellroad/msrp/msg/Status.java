@@ -62,6 +62,8 @@ public class Status {
 
     /**
      * Get the status code namespace.
+     *
+     * @return namespace ID
      */
     public int getNamespace() {
         return this.namespace;
@@ -69,6 +71,8 @@ public class Status {
 
     /**
      * Get the status code.
+     *
+     * @return status code
      */
     public int getCode() {
         return this.code;
@@ -87,6 +91,7 @@ public class Status {
      * Create an instance by parsing a {@link String}.
      *
      * @param string static expressed as a string
+     * @return parsed {@link Status}
      * @throws IllegalArgumentException if {@code string} is null or invalid
      */
     public static Status fromString(String string) {

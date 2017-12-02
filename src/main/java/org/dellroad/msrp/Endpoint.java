@@ -47,6 +47,8 @@ public class Endpoint {
     /**
      * Convert this instance to a {@link InetSocketAddress}. This may result in a DNS lookup.
      * If the lookup fails, the returned {@link InetSocketAddress} will be <i>unresolved</i>.
+     *
+     * @return new socket address based on this instance
      */
     public InetSocketAddress toSocketAddress() {
         return new InetSocketAddress(this.host, this.port);

@@ -499,7 +499,7 @@ public class Msrp {
     }
 
     // Invoked when we get an incoming connection
-    private void handleAccept() throws IOException {
+    private synchronized void handleAccept() throws IOException {       // already synchronized when invoked (make spotbugs happy)
 
         // Check connection size limit
         if (this.connections.size() >= this.maxSessions) {

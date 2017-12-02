@@ -574,7 +574,7 @@ public class Session {
     /**
      * This object is needed so that when a failure report is requested we can keep track of who to notify.
      */
-    private class OutputTransaction {
+    private static class OutputTransaction {
 
         private final OutputChunks chunks;
         private final String transactionId;

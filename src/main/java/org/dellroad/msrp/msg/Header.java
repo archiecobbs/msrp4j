@@ -81,7 +81,7 @@ public class Header {
         if (obj == null || obj.getClass() != this.getClass())
             return false;
         final Header that = (Header)obj;
-        return this.name.equals(that) && this.value.equals(value);
+        return this.name.equals(that.name) && this.value.equals(that.value);
     }
 
     @Override

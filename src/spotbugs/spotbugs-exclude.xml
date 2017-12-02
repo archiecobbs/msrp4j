@@ -1,0 +1,22 @@
+<FindBugsFilter>
+    <Match>
+        <Class name="org.dellroad.msrp.InputChunks"/>
+        <Method name="getContent"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.dellroad.msrp.msg.MsrpRequest"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="org.dellroad.msrp.msg.MsrpRequest"/>
+        <Method name="getBody"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.dellroad.msrp.msg.MsrpRequest"/>
+        <Method name="setBody"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+</FindBugsFilter>

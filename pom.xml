@@ -8,7 +8,7 @@
     <groupId>org.dellroad</groupId>
     <artifactId>msrp4j</artifactId>
     <name>MSRP4J</name>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
     <description>msrp4j is a Java library for the MSRP protocol defined by RFC 4975.</description>
     <url>https://github.com/archiecobbs/msrp4j</url>
     <licenses>

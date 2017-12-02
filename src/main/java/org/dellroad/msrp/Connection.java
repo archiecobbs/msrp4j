@@ -8,6 +8,7 @@ package org.dellroad.msrp;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
@@ -52,12 +53,16 @@ class Connection {
         this.selectionKey = this.msrp.createSelectionKey(this.socketChannel, new SelectorService() {
             @Override
             public void serviceIO(SelectionKey key) throws IOException {
-                if (key.isConnectable())
-                    Connection.this.handleConnectable();
-                if (key.isReadable())
-                    Connection.this.handleReadable();
-                if (key.isWritable())
-                    Connection.this.handleWritable();
+                try {
+                    if (key.isConnectable())
+                        Connection.this.handleConnectable();
+                    if (key.isReadable())
+                        Connection.this.handleReadable();
+                    if (key.isWritable())
+                        Connection.this.handleWritable();
+                } catch (CancelledKeyException e) {
+                    throw new IOException("selection key has been canceled", e);
+                }
             }
             @Override
             public void close(Exception cause) {
@@ -188,8 +193,12 @@ class Connection {
 
     private void selectFor(int ops, boolean enabled) throws IOException {
         if (this.selectionKey != null) {
-            final int currentOps = this.selectionKey.interestOps();
-            this.selectionKey.interestOps(enabled ? currentOps | ops : currentOps & ~ops);
+            try {
+                final int currentOps = this.selectionKey.interestOps();
+                this.selectionKey.interestOps(enabled ? currentOps | ops : currentOps & ~ops);
+            } catch (CancelledKeyException e) {
+                throw new IOException("selection key has been canceled", e);
+            }
         }
     }
 }

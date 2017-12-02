@@ -7,6 +7,7 @@ package org.dellroad.msrp;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectableChannel;
@@ -519,14 +520,18 @@ public class Msrp {
     private void selectForAccept(boolean enabled) throws IOException {
         if (this.selectionKey == null)
             return;
-        if (enabled && (this.selectionKey.interestOps() & SelectionKey.OP_ACCEPT) == 0) {
-            this.selectionKey.interestOps(this.selectionKey.interestOps() | SelectionKey.OP_ACCEPT);
-            if (this.log.isDebugEnabled())
-                this.log.debug(this + " started listening for incoming connections");
-        } else if (!enabled && (this.selectionKey.interestOps() & SelectionKey.OP_ACCEPT) != 0) {
-            this.selectionKey.interestOps(this.selectionKey.interestOps() & ~SelectionKey.OP_ACCEPT);
-            if (this.log.isDebugEnabled())
-                this.log.debug(this + " stopped listening for incoming connections");
+        try {
+            if (enabled && (this.selectionKey.interestOps() & SelectionKey.OP_ACCEPT) == 0) {
+                this.selectionKey.interestOps(this.selectionKey.interestOps() | SelectionKey.OP_ACCEPT);
+                if (this.log.isDebugEnabled())
+                    this.log.debug(this + " started listening for incoming connections");
+            } else if (!enabled && (this.selectionKey.interestOps() & SelectionKey.OP_ACCEPT) != 0) {
+                this.selectionKey.interestOps(this.selectionKey.interestOps() & ~SelectionKey.OP_ACCEPT);
+                if (this.log.isDebugEnabled())
+                    this.log.debug(this + " stopped listening for incoming connections");
+            }
+        } catch (CancelledKeyException e) {
+            throw new IOException("selection key has been canceled", e);
         }
     }
 
@@ -694,7 +699,7 @@ public class Msrp {
         try {
             return "Key[interest=" + dbgOps(key.interestOps()) + ",ready="
               + dbgOps(key.readyOps()) + ",obj=" + key.attachment() + "]";
-        } catch (java.nio.channels.CancelledKeyException e) {
+        } catch (CancelledKeyException e) {
             return "Key[canceled]";
         }
     }

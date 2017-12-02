@@ -1,3 +1,7 @@
+Version Next
+
+    - Fix race condition where CancelledKeyException disables service thread
+
 Version 2.0.0 Released May 12, 2016
 
     - Convert build to Maven

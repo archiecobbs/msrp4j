@@ -74,6 +74,9 @@ public class InputChunks {
         if (!this.messageId.equals(requestHeaders.getMessageId()))
             throw new IllegalArgumentException("request message ID " + requestHeaders.getMessageId() + " != " + this.messageId);
 
+        // Validate whole request
+        request.validate();
+
         // Update timestamp
         this.timestamp = System.nanoTime();
 

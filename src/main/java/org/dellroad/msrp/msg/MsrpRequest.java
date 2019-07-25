@@ -133,6 +133,26 @@ public class MsrpRequest extends MsrpMessage {
     }
 
     /**
+     * Apply some validation checks to this instance.
+     *
+     * <p>
+     * If this method fails, the caller should return 400 Bad Request.
+     *
+     * @throws ProtocolException if message is invali
+     */
+    public void validate() throws ProtocolException {
+
+        // Sanity check presence of MIME headers vs. having a body
+        if (this.body != null && this.getHeaders().getContentType() == null) {
+            throw new ProtocolException("missing header `" + MsrpConstants.CONTENT_TYPE_HEADER
+              + "' required when message has a body");
+        }
+        if (this.body == null
+          && (this.getHeaders().getContentType() != null || !this.getHeaders().getMimeHeaders().isEmpty()))
+            throw new ProtocolException("MIME headers are not allowed when message has no body");
+    }
+
+    /**
      * Determine if the given header name is a MIME header.
      *
      * @param name header name

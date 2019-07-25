@@ -191,15 +191,6 @@ public class MsrpInputParser {
             if (this.body != null && !this.allowBody)
                 throw new ProtocolException("message must not contain a body but does");
 
-            // Sanity check presence of MIME headers vs. having a body
-            if (this.body != null && this.message.getHeaders().getContentType() == null) {
-                throw new ProtocolException("missing header `" + MsrpConstants.CONTENT_TYPE_HEADER
-                  + "' required when message has a body");
-            }
-            if (this.body == null
-              && (this.message.getHeaders().getContentType() != null || !this.message.getHeaders().getMimeHeaders().isEmpty()))
-                throw new ProtocolException("MIME headers are not allowed when message has no body");
-
             // If there is no body, we're done
             if (this.body == null)
                 return true;

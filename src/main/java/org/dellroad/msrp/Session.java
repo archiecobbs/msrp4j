@@ -355,11 +355,11 @@ public class Session {
         try {
             complete = chunks.handleSend(request);
         } catch (ProtocolException e) {
+            this.log.debug("rec'd invalid request: " + e.getMessage());
             if (!FailureReport.NO.equals(headers.getFailureReport())) {
                 this.outputQueue.add(Session.createMsrpResponse(request,
                   MsrpConstants.RESPONSE_CODE_BAD_REQUEST, "Protocol error: " + e.getMessage()));
             }
-            this.close(e);
             return;
         }
 

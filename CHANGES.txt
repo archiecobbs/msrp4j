@@ -1,3 +1,7 @@
+Version Next
+
+    - Return "400 Bad Request" instead of just closing connection for certain violations
+
 Version 2.0.1 Released December 1, 2017
 
     - Fix race condition where CancelledKeyException disables service thread

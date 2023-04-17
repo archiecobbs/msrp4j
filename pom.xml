@@ -37,17 +37,31 @@
     <properties>
 
         <!-- Basic stuff -->
-        <compiler.source>1.8</compiler.source>
-        <compiler.target>1.8</compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <checkstyle.config.location>src/checkstyle/checkstyle.xml</checkstyle.config.location>
 
         <!-- Dependency versions -->
-        <dellroad-stuff.version>2.2.2</dellroad-stuff.version>
-        <jline.version>2.14.2</jline.version>
-        <log4j.version>1.2.17</log4j.version>
-        <slf4j.version>1.7.25</slf4j.version>
-        <testng.version>6.9.10</testng.version>
+        <dellroad-stuff.version>2.5.9</dellroad-stuff.version>
+        <jline.version>2.14.6</jline.version>
+        <log4j.version>2.19.0</log4j.version>
+        <slf4j.version>1.7.35</slf4j.version>
+        <testng.version>7.7.0</testng.version>
+
+        <maven.checkstyle.plugin.version>3.0.0</maven.checkstyle.plugin.version>
+        <maven.compiler.plugin.version>3.10.1</maven.compiler.plugin.version>
+        <maven.enforcer.plugin.version>3.0.0</maven.enforcer.plugin.version>
+        <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
+        <maven.jar.plugin.version>3.2.0</maven.jar.plugin.version>
+        <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
+        <maven.project.info.reports.plugin.version>3.1.2</maven.project.info.reports.plugin.version>
+        <maven.shade.plugin.version>3.2.2</maven.shade.plugin.version>
+        <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
+        <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
+        <maven.wagon.scm.extension.version>3.3.4</maven.wagon.scm.extension.version>
+        <spotbugs.maven.plugin.version>4.7.1.0</spotbugs.maven.plugin.version>
+
+        <!-- Module -->
+        <automatic.module.name>org.dellroad.msrp</automatic.module.name>
 
     </properties>
     <dependencies>
@@ -74,17 +88,8 @@
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <artifactId>slf4j-reload4j</artifactId>
             <version>${slf4j.version}</version>
-            <optional>true</optional>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>${log4j.version}</version>
-            <optional>true</optional>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Standard test dependencies -->
@@ -115,11 +120,11 @@
     <build>
         <plugins>
 
-            <!-- Java version enforcer -->
+            <!-- Maven Enforcer -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.4.1</version>
+                <version>${maven.enforcer.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>enforce-java</id>
@@ -128,20 +133,32 @@
                         </goals>
                         <configuration>
                             <rules>
+
+                                <!-- Enforce Java version -->
                                 <requireJavaVersion>
-                                    <version>1.8.0</version>
+                                    <version>[1.8,)</version>
                                 </requireJavaVersion>
+
+                                <!-- Check for dependency conflicts -->
+                                <!-- <dependencyConvergence/> -->
+                                <banDuplicatePomDependencyVersions/>
+
+                                <!-- Other rules -->
+                                <reactorModuleConvergence/>
+                                <!-- <requireUpperBoundDeps/> -->
                             </rules>
+
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
+
             <!-- JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.6</version>
+                <version>${maven.jar.plugin.version}</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -151,6 +168,7 @@
                             <Implementation-Build>${project.version}</Implementation-Build>
                             <Implementation-Artifact-Id>${project.artifactId}</Implementation-Artifact-Id>
                             <Build-Number>${project.version}</Build-Number>
+                            <Automatic-Module-Name>${automatic.module.name}</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -160,12 +178,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>${maven.compiler.plugin.version}</version>
                 <configuration>
-                    <source>${compiler.source}</source>
-                    <target>${compiler.target}</target>
+                    <source>8</source>
+                    <target>8</target>
+                    <release>8</release>
                     <compilerArgs>
-                        <arg>-Xlint:all</arg>
+                        <arg>-Xlint:all,-processing,-path</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -174,7 +193,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.3</version>
+                <version>${maven.shade.plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -212,7 +231,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>${maven.source.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -227,8 +246,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
+                <version>${maven.javadoc.plugin.version}</version>
                 <configuration>
+                    <source>8</source>
                     <notimestamp>true</notimestamp>
                     <links>
                         <link>http://archiecobbs.github.io/dellroad-stuff/site/apidocs/</link>
@@ -250,7 +270,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
+                <version>${maven.surefire.plugin.version}</version>
                 <configuration>
                     <systemPropertyVariables>
                         <deleteTempDirs>true</deleteTempDirs>
@@ -269,7 +289,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.0-RC6</version>
+                <version>${spotbugs.maven.plugin.version}</version>
                 <configuration>
                     <effort>Max</effort>
                     <threshold>Default</threshold>
@@ -293,7 +313,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.17</version>
+                <version>${maven.checkstyle.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>default-verify</id>
@@ -303,7 +323,9 @@
                             <consoleOutput>true</consoleOutput>
                             <failsOnError>true</failsOnError>
                             <linkXRef>false</linkXRef>
-                            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                            <sourceDirectories>
+                                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                            </sourceDirectories>
                         </configuration>
                         <goals>
                             <goal>check</goal>
@@ -316,7 +338,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.9</version>
+                <version>${maven.project.info.reports.plugin.version}</version>
             </plugin>
         </plugins>
 
@@ -324,7 +346,7 @@
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-scm</artifactId>
-                <version>2.10</version>
+                <version>${maven.wagon.scm.extension.version}</version>
             </extension>
         </extensions>
 
@@ -336,9 +358,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
+                <version>${maven.javadoc.plugin.version}</version>
                 <configuration>
+                    <source>8</source>
                     <notimestamp>true</notimestamp>
+                    <inherited>false</inherited>
+                    <doclint>-html</doclint>
                     <links>
                         <link>http://archiecobbs.github.io/dellroad-stuff/site/apidocs/</link>
                         <link>http://jline.github.io/jline2/apidocs/reference/</link>
@@ -358,7 +383,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.5</version>
+                        <version>${maven.gpg.plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>

@@ -1,6 +1,7 @@
 Version Next
 
     - Return "400 Bad Request" instead of just closing connection for certain violations
+    - Support build on JDK 11+ while still targeting JDK 8
 
 Version 2.0.1 Released December 1, 2017
 

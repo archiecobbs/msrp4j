@@ -5,6 +5,36 @@
         <Bug pattern="EI_EXPOSE_REP"/>
     </Match>
     <Match>
+        <Class name="org.dellroad.msrp.InputChunks"/>
+        <Method name="getFromPath"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.dellroad.msrp.MsrpUri"/>
+        <Method name="getParameters"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.dellroad.msrp.msg.MsrpHeaders"/>
+        <Method name="getToPath"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.dellroad.msrp.msg.MsrpHeaders"/>
+        <Method name="getFromPath"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.dellroad.msrp.msg.MsrpHeaders"/>
+        <Method name="getMimeHeaders"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.dellroad.msrp.msg.MsrpHeaders"/>
+        <Method name="getExtensionHeaders"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
         <Class name="org.dellroad.msrp.msg.MsrpRequest"/>
         <Method name="&lt;init&gt;"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
@@ -18,5 +48,15 @@
         <Class name="org.dellroad.msrp.msg.MsrpRequest"/>
         <Method name="setBody"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="org.dellroad.msrp.msg.MsrpInputParser"/>
+        <Method name="inputMessageByte"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.dellroad.msrp.msg.MsrpMessage"/>
+        <Method name="getHeaders"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
     </Match>
 </FindBugsFilter>

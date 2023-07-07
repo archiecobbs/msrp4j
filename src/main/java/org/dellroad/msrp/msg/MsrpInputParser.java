@@ -38,8 +38,8 @@ public class MsrpInputParser {
     /** Default maximum number of extension headers ({@value #DEFAULT_MAX_EXTENSION_HEADERS}) */
     public static final int DEFAULT_MAX_EXTENSION_HEADERS = 32;
 
-    private static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("MSRP ([-.+%=\\p{Alnum}]{3,31}) ([A-Z]+)");
-    private static final Pattern RESPONSE_LINE_PATTERN = Pattern.compile("MSRP ([-.+%=\\p{Alnum}]{3,31}) ([0-9]{3})( (.*))?");
+    private static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("MSRP (\\p{Alnum}[-.+%=\\p{Alnum}]{3,31}) ([A-Z]+)");
+    private static final Pattern RESPONSE_LINE_PATTERN = Pattern.compile("MSRP (\\p{Alnum}[-.+%=\\p{Alnum}]{3,31}) ([0-9]{3})( (.*))?");
 
     private static final Header HEADER_EOF = new Header("dummy", "dummy");
 

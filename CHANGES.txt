@@ -1,3 +1,7 @@
+Version Next
+
+    - Fixed non-RFC-compliant request/response line regular expression (#3)
+
 Version 2.1.0 Released April 17, 2023
 
     - Return "400 Bad Request" instead of just closing connection for certain violations
